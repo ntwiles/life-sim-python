@@ -1,5 +1,3 @@
-
-
 from multiprocessing import Pipe, Process
 
 from simulator.main import simulator_worker

@@ -1,10 +1,10 @@
 from multiprocessing.connection import PipeConnection
 from random import randint
 
-from shared.lib import Individual
+from shared.lib import NUM_INDIVS, Individual
 
 def spawn_indivs():
-    return list(map(lambda id: Individual(id, (randint(0, 1000), randint(0, 1000))), range(3000)))
+    return list(map(lambda id: Individual(id, (randint(0, 1000), randint(0, 1000))), range(NUM_INDIVS)))
 
 def update_indivs(indivs: list[Individual]):
     for indiv in indivs:
