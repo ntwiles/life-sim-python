@@ -22,5 +22,6 @@ def simulator_worker(pipe: PipeConnection):
         steps -= 1
 
     pipe.close()
+    print("Simulator done")
 
 
