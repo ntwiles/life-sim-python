@@ -1,10 +1,7 @@
-from multiprocessing import Event
 from multiprocessing.connection import PipeConnection
-from multiprocessing.shared_memory import SharedMemory
-import struct
-
-import numpy as np
 import tkinter as tk
+
+from shared.lib import Individual
 
 ENTITY_RADIUS = 5
 
@@ -14,10 +11,10 @@ def get_circle_coords(pos: tuple[int, int], radius: int) -> tuple[int, int, int,
 
 def update(root: tk.Tk, canvas: tk.Canvas, pipe: PipeConnection, ids: list[int]):    
     try:
-        positions = pipe.recv()
+        indivs: list[Individual] = pipe.recv()
 
-        for i, pos in enumerate(positions):
-            canvas.coords(ids[i], *get_circle_coords(pos, ENTITY_RADIUS))
+        for i, indiv in enumerate(indivs):
+            canvas.coords(ids[i], *get_circle_coords(indiv.position, ENTITY_RADIUS))
     except EOFError:
         root.quit()
         return
@@ -32,11 +29,11 @@ def viewer_worker(pipe: PipeConnection):
     canvas = tk.Canvas(root, width=1000, height=1000, borderwidth=0, highlightthickness=0, bg="black")
     canvas.grid()
 
-    ids = [0] * 10
-    positions = [(0, 0)] * 10
+    ids = [0] * 3000
+    indivs: list[Individual] = [Individual(0, (0, 0))] * 3000
 
-    for i, pos in enumerate(positions):
-        id = canvas.create_oval(*get_circle_coords(pos, ENTITY_RADIUS), outline="white", fill="white")
+    for i, indiv in enumerate(indivs):
+        id = canvas.create_oval(*get_circle_coords(indiv.position, ENTITY_RADIUS), outline="white", fill="white")
         ids[i] = id
     
     root.after(10, lambda: update(root, canvas, pipe, ids))
