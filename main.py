@@ -11,10 +11,12 @@ def main():
 
     simulator = Process(target=simulator_worker, daemon=True, args=(send_conn,))
     simulator.start()
-
     simulator.join()
+
     send_conn.close()
     recv_conn.close()
+
+    viewer.join()
 
 if __name__ == "__main__":
     main()
