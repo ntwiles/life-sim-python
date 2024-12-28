@@ -8,12 +8,10 @@ from shared.lib import GRID_SIZE, NUM_INDIVS, WINDOW_SCALE, Individual
 class Viewer:
     def __init__(self, pipe: PipeConnection):
         self.pipe = pipe
-        self.window = pyglet.window.Window()
+        self.window = pyglet.window.Window(GRID_SIZE * WINDOW_SCALE, GRID_SIZE * WINDOW_SCALE)
 
         self.ids: list[shapes.Circle | None] = [None] * NUM_INDIVS
         self.indivs = [Individual(0, (0, 0)) for _ in range(NUM_INDIVS)]
-
-        self.rendering_enabled = True
 
         self.rendering_enabled = True
                 
@@ -36,7 +34,7 @@ class Viewer:
         if self.rendering_enabled:
             for i, indiv in enumerate(self.indivs):
                 circle = self.ids[i]
-                circle.position = indiv.position
+                circle.position = indiv.position[0] * WINDOW_SCALE, indiv.position[1] * WINDOW_SCALE
                 circle.draw()
 
 

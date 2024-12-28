@@ -1,10 +1,15 @@
+from dataclasses import dataclass
 from multiprocessing.connection import PipeConnection
 from random import randint
 
-from shared.lib import NUM_INDIVS, Individual
+from shared.lib import GRID_SIZE, NUM_INDIVS, Individual
+
+@dataclass
+class IndividualUpdateContext:
+    food_angle: float
 
 def spawn_indivs():
-    return list(map(lambda id: Individual(id, (randint(0, 1000), randint(0, 1000))), range(NUM_INDIVS)))
+    return list(map(lambda id: Individual(id, (randint(0, GRID_SIZE), randint(0, GRID_SIZE))), range(NUM_INDIVS)))
 
 def update_indivs(indivs: list[Individual]):
     for indiv in indivs:
