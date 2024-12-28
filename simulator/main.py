@@ -1,12 +1,16 @@
 from dataclasses import dataclass
+import math
 from multiprocessing.connection import PipeConnection
 from random import randint
+
+from scipy.spatial import cKDTree
 
 from shared.lib import GRID_SIZE, NUM_FOOD, NUM_INDIVS, Individual, PipeMessage
 
 @dataclass
 class IndividualUpdateContext:
     food_angle: float
+    individual: Individual
 
 def spawn_food():
     food = []
@@ -18,20 +22,30 @@ def spawn_food():
 def spawn_indivs():
     return list(map(lambda id: Individual(id, (randint(0, GRID_SIZE), randint(0, GRID_SIZE))), range(NUM_INDIVS)))
 
-def update_indivs(indivs: list[Individual]):
-    for indiv in indivs:
-        indiv.position = (indiv.position[0] + 1, indiv.position[1] + 1)
+def update_individual(indiv: Individual, food_kd_tree: cKDTree, foods: list[tuple[int, int]]):
+    _dist, idx = food_kd_tree.query(indiv.position)
+    food = foods[idx]
+    food_disp = (food[0] - indiv.position[0], food[1] - indiv.position[1])
+    food_angle = math.atan2(food_disp[1], food_disp[0])
+
+    indiv.position = (indiv.position[0] + 1, indiv.position[1] + 1)
+
+    IndividualUpdateContext(food_angle, indiv)
+
+def update(indivs: list[Individual], foods: list[tuple[int, int]], food_kd_tree: cKDTree):
+    return list(map(lambda indiv: update_individual(indiv, food_kd_tree, foods), indivs))
 
 def simulator_worker(pipe: PipeConnection):
     indivs = spawn_indivs()
-    food = spawn_food()
+    foods = spawn_food()
+    food_kd_tree = cKDTree(foods)
 
     steps = 1000
 
     while steps > 0:
-        update_indivs(indivs)
+        update(indivs, foods, food_kd_tree)
 
-        pipe.send(PipeMessage(indivs, food))
+        pipe.send(PipeMessage(indivs, foods))
         steps -= 1
 
     pipe.close()
