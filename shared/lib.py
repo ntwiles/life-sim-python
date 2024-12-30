@@ -5,6 +5,7 @@ NUM_FOOD = 1000
 GRID_SIZE = 500
 WINDOW_SCALE = 2
 
+# TODO: Maybe move this to simulator.
 @dataclass
 class Individual:
     id: int
@@ -17,6 +18,11 @@ class Individual:
         self.previous_position = start_position
 
 @dataclass
+class IndividualUpdateContext:
+    food_angle: float
+    next_position: tuple[int, int]
+
+@dataclass
 class PipeMessage:
-    indivs: list[Individual]
+    indiv_updates: list[IndividualUpdateContext]
     food: list[tuple[int, int]]
