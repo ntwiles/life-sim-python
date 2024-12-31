@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+SIMULATOR_STEPS = 500
 NUM_INDIVS = 1000
 NUM_FOOD = 1000
 GRID_SIZE = 500
