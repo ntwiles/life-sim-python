@@ -4,6 +4,7 @@ from multiprocessing.connection import PipeConnection
 from random import randint
 
 from scipy.spatial import cKDTree
+import tensorflow as tf
 
 from shared.lib import GRID_SIZE, NUM_FOOD, NUM_INDIVS, SIMULATOR_STEPS, Individual, IndividualUpdateContext, PipeMessage
 from simulator.network.main import decide
@@ -51,6 +52,12 @@ def spawn_indivs():
 def simulator_worker(pipe: PipeConnection) -> None:
     sim = Simulator()
     steps = SIMULATOR_STEPS
+
+    print(tf.__version__)
+
+    print("Built with CUDA:", tf.test.is_built_with_cuda())
+    print("Built with GPU support:", tf.test.is_built_with_gpu_support())
+    print("GPUs available:", tf.config.list_physical_devices('GPU'))
 
     while steps > 0:
         indiv_updates = sim.update(SIMULATOR_STEPS - steps)

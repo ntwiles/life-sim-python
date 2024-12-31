@@ -10,25 +10,26 @@ def decide(indiv: Individual, context: IndividualUpdateContext, generation_time:
 
     food_angle = context.food_angle
 
-    input_values = [
-        prev_position_dir_x,
-        prev_position_dir_y,
-        generation_time,
-        math.cos(food_angle),
-        math.sin(food_angle),
-    ]
+    with tf.device('/GPU:0'):
+        input_values = [
+            prev_position_dir_x,
+            prev_position_dir_y,
+            generation_time,
+            math.cos(food_angle),
+            math.sin(food_angle),
+        ]
 
-    input_layer = tf.constant([input_values], dtype=tf.float32)  # Batch size of 1
+        input_layer = tf.constant([input_values], dtype=tf.float32)  # Batch size of 1
 
-    output = indiv.model(input_layer)
-    decision = tf.argmax(output, axis=1).numpy()[0]
+        output = indiv.model(input_layer)
+        decision = tf.argmax(output, axis=1).numpy()[0]
 
-    output_values = [
-        (0, 1),
-        (1, 0),
-        (0, -1),
-        (-1, 0),
-        (0, 0),
-    ]
+        output_values = [
+            (0, 1),
+            (1, 0),
+            (0, -1),
+            (-1, 0),
+            (0, 0),
+        ]
 
     return output_values[decision]
