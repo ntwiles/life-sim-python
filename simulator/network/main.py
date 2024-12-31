@@ -9,14 +9,16 @@ def decide(indiv: Individual, context: IndividualUpdateContext, generation_time:
     prev_position_dir_y = indiv.position[1] - indiv.previous_position[1]
 
     food_angle = context.food_angle
+    food_cos = tf.cos(food_angle)
+    food_sin = tf.sin(food_angle)
 
     with tf.device('/GPU:0'):
         input_values = [
             prev_position_dir_x,
             prev_position_dir_y,
             generation_time,
-            math.cos(food_angle),
-            math.sin(food_angle),
+            food_cos.numpy(),
+            food_sin.numpy(),
         ]
 
         input_layer = tf.constant([input_values], dtype=tf.float32)  # Batch size of 1
