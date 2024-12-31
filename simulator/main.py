@@ -27,9 +27,11 @@ class Simulator:
         food_disp = (food[0] - indiv.position[0], food[1] - indiv.position[1])
         food_angle = math.atan2(food_disp[1], food_disp[0])
 
-        decision = decide(indiv, IndividualUpdateContext(food_angle, indiv.position), 0)
+        context = IndividualUpdateContext(food_angle, indiv.position)
 
-        next_position = (indiv.position[0] + 1, indiv.position[1] + 1)
+        decision = decide(indiv, context, generation_time)
+
+        next_position = (indiv.position[0] + decision[0], indiv.position[1] + decision[1])
 
         indiv.position = next_position
 
