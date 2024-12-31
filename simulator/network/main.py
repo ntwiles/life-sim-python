@@ -8,11 +8,11 @@ def decide(indiv: Individual, context: IndividualUpdateContext, generation_time:
     prev_position_dir_x = indiv.position[0] - indiv.previous_position[0]
     prev_position_dir_y = indiv.position[1] - indiv.previous_position[1]
 
-    food_angle = context.food_angle
-    food_cos = tf.cos(food_angle)
-    food_sin = tf.sin(food_angle)
-
     with tf.device('/GPU:0'):
+        food_angle = context.food_angle
+        food_cos = tf.cos(food_angle)
+        food_sin = tf.sin(food_angle)
+        
         input_values = [
             prev_position_dir_x,
             prev_position_dir_y,
