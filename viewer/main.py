@@ -66,8 +66,6 @@ class Viewer:
                     circle.draw()
 
 
-
-
     def update(self, _dt: float):
         try:
             message: PipeMessage = self.queue.get()
@@ -92,3 +90,4 @@ class Viewer:
 def viewer_worker(queue: Queue) -> None:
     viewer = Viewer(queue)
     viewer.run()
+    print('Viewer worker done')
