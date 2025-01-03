@@ -5,7 +5,8 @@ from random import randint
 
 import tensorflow as tf
 
-from shared.lib import GRID_SIZE, HEAL_ZONE_RADIUS, INPUT_SIZE, MAX_LENGTH, NUM_HEAL_ZONES, NUM_INDIVS, SIMULATOR_RUNS, SIMULATOR_STEPS, HealZone, Individual, IndividualUpdateContext, PipeMessage
+from shared.lib import GRID_SIZE, HEAL_ZONE_RADIUS, INPUT_SIZE, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_HEAL_ZONES, NUM_INDIVS, SIMULATOR_RUNS, SIMULATOR_STEPS, HealZone, Individual, IndividualUpdateContext, PipeMessage
+from simulator.heal_zones import get_closest_heal_zone, spawn_heal_zones
 from simulator.network.main import decide
 
 class Simulator:
@@ -19,24 +20,13 @@ class Simulator:
         self.indivs = indivs
         self.heal_zones = spawn_heal_zones()
 
+
     def update(self, t: int) -> list[IndividualUpdateContext]:
         return list(map(lambda indiv: self.update_individual(indiv, t), self.indivs))
-    
 
-    def get_closest_heal_zone(self, position: tuple[int, int]) -> HealZone:
-        closest_heal_zone = None
-        closest_heal_zone_dist = float('inf')
 
-        for heal_zone in self.heal_zones:
-            dist = math.dist(heal_zone.position, position)
-            if dist < closest_heal_zone_dist:
-                closest_heal_zone = heal_zone
-                closest_heal_zone_dist = dist
-
-        return (closest_heal_zone, closest_heal_zone_dist)
-    
     def update_individual(self, indiv: Individual, t: int) -> IndividualUpdateContext:
-        heal_zone, heal_zone_dist = self.get_closest_heal_zone(indiv.position)
+        heal_zone, heal_zone_dist = get_closest_heal_zone(self.heal_zones, indiv.position)
 
         # TODO: Calculate this in `get_closest_heal_zone`.
         heal_zone_disp = (heal_zone.position[0] - indiv.position[0], heal_zone.position[1] - indiv.position[1])
@@ -48,28 +38,21 @@ class Simulator:
         context = IndividualUpdateContext(heal_zone_angle, heal_zone_dist / MAX_LENGTH, indiv.position, indiv.times_healed)
 
         decision = decide(indiv, context, t)
-        next_position = (indiv.position[0] + decision[0], indiv.position[1] + decision[1])
 
-        context.next_position = next_position
-        indiv.position = next_position
+        indiv.previous_position = indiv.position
+        indiv.position = (indiv.position[0] + decision[0], indiv.position[1] + decision[1])
 
+        context.next_position = indiv.position
         return context
-
-def spawn_heal_zones() -> list[HealZone]:
-    heal_zones = []
-    for _ in range(NUM_HEAL_ZONES):
-        position = (randint(HEAL_ZONE_RADIUS, GRID_SIZE - HEAL_ZONE_RADIUS), randint(HEAL_ZONE_RADIUS, GRID_SIZE - HEAL_ZONE_RADIUS))
-        heal_zones.append(HealZone(position, HEAL_ZONE_RADIUS))
-
-    return heal_zones
+    
 
 def spawn_indivs() -> list[Individual]:
     return list(map(lambda _: Individual((randint(0, GRID_SIZE), randint(0, GRID_SIZE))), range(NUM_INDIVS)))
 
-def mutate_weights(model: tf.keras.Sequential, mutation_rate=0.1):
+def mutate_weights(model: tf.keras.Sequential):
     for var in model.trainable_variables:
-        mutation_mask = tf.random.uniform(var.shape) < mutation_rate
-        random_mutations = tf.random.normal(var.shape, mean=0.0, stddev=0.1)
+        mutation_mask = tf.random.uniform(var.shape) < MUTATION_RATE
+        random_mutations = tf.random.normal(var.shape, mean=0.0, stddev=MUTATION_MAGNITUDE)
         var.assign(tf.where(mutation_mask, var + random_mutations, var))
 
 def simulator_worker(queue: Queue) -> None:
