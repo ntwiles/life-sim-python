@@ -1,7 +1,6 @@
-import math
 import tensorflow as tf
 
-from shared.lib import Individual
+from shared.lib import INPUT_SIZE, Individual
 from simulator.main import IndividualUpdateContext
 
 def get_input_values(indiv: Individual, context: IndividualUpdateContext, generation_time: int) -> list[float]:
@@ -12,13 +11,18 @@ def get_input_values(indiv: Individual, context: IndividualUpdateContext, genera
     heal_zone_cos = tf.cos(heal_zone_angle)
     heal_zone_sin = tf.sin(heal_zone_angle)
 
-    return [
+    input_values = [
         prev_position_dir_x,
         prev_position_dir_y,
         generation_time,
         heal_zone_cos.numpy(),
         heal_zone_sin.numpy(),
     ]
+
+    if len(input_values) != INPUT_SIZE:
+        raise ValueError(f"Expected {INPUT_SIZE} inputs, got {len(input_values)}")
+    
+    return input_values
 
 def decide(indiv: Individual, context: IndividualUpdateContext, generation_time: int) -> tuple[int, int]:
     output_values = [
