@@ -4,7 +4,8 @@ import tensorflow as tf
 
 SIMULATOR_STEPS = 500
 NUM_INDIVS = 100
-NUM_FOOD = 1000
+NUM_HEAL_ZONES = 5
+HEAL_ZONE_RADIUS = 50
 GRID_SIZE = 500
 WINDOW_SCALE = 2
 
@@ -28,12 +29,20 @@ class Individual:
 
         self.model = tf.keras.Sequential(layers)
 
+class HealZone:
+    position: tuple[int, int]
+    radius: int
+
+    def __init__(self, position: tuple[int, int], radius: int):
+        self.position = position
+        self.radius = radius
+
 @dataclass
 class IndividualUpdateContext:
-    food_angle: float
+    heal_zone_angle: float
     next_position: tuple[int, int]
 
 @dataclass
 class PipeMessage:
     indiv_updates: list[IndividualUpdateContext]
-    food: list[tuple[int, int]]
+    heal_zones: list[HealZone]

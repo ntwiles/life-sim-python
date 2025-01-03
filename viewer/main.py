@@ -3,14 +3,14 @@ from multiprocessing.connection import PipeConnection
 import pyglet
 from pyglet import shapes
 
-from shared.lib import GRID_SIZE, NUM_FOOD, NUM_INDIVS, WINDOW_SCALE, Individual, IndividualUpdateContext, PipeMessage
+from shared.lib import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, WINDOW_SCALE, HealZone, IndividualUpdateContext, PipeMessage
 
 class Viewer:
     pipe: PipeConnection
     indiv_ids: list[shapes.Circle]
-    food_ids: list[shapes.Rectangle]
+    heal_zone_ids: list[shapes.Circle]
     indiv_updates: list[IndividualUpdateContext] | None
-    foods: list[tuple[int, int]] | None
+    heal_zones: list[HealZone] | None
     rendering_enabled: bool
     
     def __init__(self, pipe: PipeConnection):
@@ -23,12 +23,12 @@ class Viewer:
         for _ in range(NUM_INDIVS):
             self.indiv_ids.append(shapes.Circle(0,0, WINDOW_SCALE))
 
-        self.food_ids = []
-        for _ in range(NUM_FOOD):
-            self.food_ids.append(shapes.Rectangle(0, 0, WINDOW_SCALE, WINDOW_SCALE, color=(0, 255, 0)))
+        self.heal_zone_ids = []
+        for _ in range(NUM_HEAL_ZONES):
+            self.heal_zone_ids.append(shapes.Circle(0, 0, WINDOW_SCALE, color=(0, 255, 0, 60)))
 
         self.indiv_updates = None
-        self.foods = None
+        self.heal_zones = None
 
         pyglet.clock.schedule_interval(self.update, 1/60.0)
 
@@ -50,18 +50,19 @@ class Viewer:
                     circle.position = update.next_position[0] * WINDOW_SCALE, update.next_position[1] * WINDOW_SCALE
                     circle.draw()
 
-            if self.foods is not None:
-                for food in self.foods:
-                    rect = self.food_ids[0]
-                    rect.position = food[0] * WINDOW_SCALE, food[1] * WINDOW_SCALE
-                    rect.draw()
+            if self.heal_zones is not None:
+                for heal_zone in self.heal_zones:
+                    circle = self.heal_zone_ids[0]
+                    circle.radius = heal_zone.radius * WINDOW_SCALE
+                    circle.position = heal_zone.position[0] * WINDOW_SCALE, heal_zone.position[1] * WINDOW_SCALE
+                    circle.draw()
 
 
     def update(self, _dt: float):
         try:
             message: PipeMessage = self.pipe.recv()
             self.indiv_updates = message.indiv_updates
-            self.foods = message.food
+            self.heal_zones = message.heal_zones
         except EOFError:
             print('Viewer done')
             pyglet.app.exit()

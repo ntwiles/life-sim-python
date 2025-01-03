@@ -8,16 +8,16 @@ def get_input_values(indiv: Individual, context: IndividualUpdateContext, genera
     prev_position_dir_x = indiv.position[0] - indiv.previous_position[0]
     prev_position_dir_y = indiv.position[1] - indiv.previous_position[1]
 
-    food_angle = context.food_angle
-    food_cos = tf.cos(food_angle)
-    food_sin = tf.sin(food_angle)
+    heal_zone_angle = context.heal_zone_angle
+    heal_zone_cos = tf.cos(heal_zone_angle)
+    heal_zone_sin = tf.sin(heal_zone_angle)
 
     return [
         prev_position_dir_x,
         prev_position_dir_y,
         generation_time,
-        food_cos.numpy(),
-        food_sin.numpy(),
+        heal_zone_cos.numpy(),
+        heal_zone_sin.numpy(),
     ]
 
 def decide(indiv: Individual, context: IndividualUpdateContext, generation_time: int) -> tuple[int, int]:
