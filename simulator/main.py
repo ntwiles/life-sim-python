@@ -5,7 +5,7 @@ import random
 
 import tensorflow as tf
 
-from shared.lib import GRID_SIZE,MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE, SIMULATOR_RUNS, SIMULATOR_STEPS, HealZone, Individual, IndividualUpdateContext, PipeMessage
+from shared.lib import LOAD_MODELS, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE, SIMULATOR_RUNS, SIMULATOR_STEPS, HealZone, Individual, IndividualUpdateContext, PipeMessage
 from simulator.heal_zones import get_closest_heal_zone, spawn_heal_zones
 from simulator.model.main import decide
 
@@ -44,10 +44,6 @@ class Simulator:
 
         context.next_position = indiv.position
         return context
-    
-
-def spawn_indivs() -> list[Individual]:
-    return list(map(Individual, range(NUM_INDIVS)))
 
 def mutate_weights(model: tf.keras.Sequential):
     for var in model.trainable_variables:
@@ -67,6 +63,19 @@ def select_breeders(indivs: list[Individual]) -> list[Individual]:
     
     return random.choices(indivs, weights=probabilities, k=num_breeders)
 
+def spawn_initial_generation() -> list[Individual]:
+    indivs = []
+
+    for i in range(NUM_INDIVS):
+        indiv = Individual()
+
+        if LOAD_MODELS:
+            indiv.model.load_weights(f".models/{i}.h5")
+            
+        indivs.append(indiv)
+
+    return indivs
+
 def spawn_next_generation(breeders: list[Individual]) -> list[Individual]:
     next_generation = []
 
@@ -81,7 +90,7 @@ def spawn_next_generation(breeders: list[Individual]) -> list[Individual]:
     return next_generation
 
 def simulator_worker(queue: Queue) -> None:
-    sim = Simulator(spawn_indivs())
+    sim = Simulator(spawn_initial_generation())
     steps = SIMULATOR_STEPS
     sims = SIMULATOR_RUNS
 

@@ -17,6 +17,7 @@ PROFILER = False
 MUTATION_RATE = 0.1
 MUTATION_MAGNITUDE = 0.01
 SELECTION_RATE = 0.25
+LOAD_MODELS = True
 
 # TODO: Maybe move this to simulator.
 class Individual:

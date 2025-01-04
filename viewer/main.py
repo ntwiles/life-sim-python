@@ -2,7 +2,7 @@
 import math
 from multiprocessing import Queue
 import pyglet
-from pyglet import shapes
+from pyglet import shapes, text
 
 from shared.lib import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, WINDOW_SCALE, HealZone, IndividualUpdateContext, PipeMessage
 
@@ -12,6 +12,7 @@ class Viewer:
     heal_zone_ids: list[shapes.Circle]
     indiv_updates: list[IndividualUpdateContext] | None
     heal_zones: list[HealZone] | None
+    label: text.Label
     rendering_enabled: bool
     
     def __init__(self, queue: Queue):
@@ -27,6 +28,14 @@ class Viewer:
         self.heal_zone_ids = []
         for _ in range(NUM_HEAL_ZONES):
             self.heal_zone_ids.append(shapes.Circle(0, 0, WINDOW_SCALE, color=(110, 255, 100, 60)))
+
+
+        self.label = pyglet.text.Label('',
+                                font_name='Times New Roman',
+                                font_size=18,
+                                x=20, y=20,
+                                color=(255, 255, 255, 255),
+                                anchor_x='left', anchor_y='bottom')
 
         self.indiv_updates = None
         self.heal_zones = None
@@ -53,6 +62,8 @@ class Viewer:
                     circle.draw()
 
             if self.indiv_updates is not None:
+                times_healed = 0
+
                 for i, update in enumerate(self.indiv_updates):
                     # 50 denominator is arbitrary
                     percent_healed = min(update.times_healed / 50, 1)
@@ -64,6 +75,10 @@ class Viewer:
                     circle.position = update.next_position[0] * WINDOW_SCALE, update.next_position[1] * WINDOW_SCALE
                     circle.color = (r, g, b, 255)
                     circle.draw()
+
+                # Estimation not aligned with the simulator.
+                self.label.text = f'Avg. times healed: {times_healed / NUM_INDIVS}'
+                self.label.draw()
 
 
     def update(self, _dt: float):
