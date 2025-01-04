@@ -1,11 +1,11 @@
-from dataclasses import dataclass
 import math
 from multiprocessing import Queue
 from random import randint
+import random
 
 import tensorflow as tf
 
-from shared.lib import GRID_SIZE,MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SIMULATOR_RUNS, SIMULATOR_STEPS, HealZone, Individual, IndividualUpdateContext, PipeMessage
+from shared.lib import GRID_SIZE,MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE, SIMULATOR_RUNS, SIMULATOR_STEPS, HealZone, Individual, IndividualUpdateContext, PipeMessage
 from simulator.heal_zones import get_closest_heal_zone, spawn_heal_zones
 from simulator.model.main import decide
 
@@ -47,13 +47,38 @@ class Simulator:
     
 
 def spawn_indivs() -> list[Individual]:
-    return list(map(lambda _: Individual((randint(0, GRID_SIZE), randint(0, GRID_SIZE))), range(NUM_INDIVS)))
+    return list(map(Individual, range(NUM_INDIVS)))
 
 def mutate_weights(model: tf.keras.Sequential):
     for var in model.trainable_variables:
         mutation_mask = tf.random.uniform(var.shape) < MUTATION_RATE
         random_mutations = tf.random.normal(var.shape, mean=0.0, stddev=MUTATION_MAGNITUDE)
         var.assign(tf.where(mutation_mask, var + random_mutations, var))
+
+def select_breeders(indivs: list[Individual]) -> list[Individual]:
+    total_fitness = sum(indiv.times_healed for indiv in indivs)
+
+    if total_fitness == 0:
+        probabilities = [1 / len(indivs)] * len(indivs)
+    else:
+        probabilities = [indiv.times_healed / total_fitness for indiv in indivs]
+
+    num_breeders = math.floor(len(indivs) * SELECTION_RATE)
+    
+    return random.choices(indivs, weights=probabilities, k=num_breeders)
+
+def spawn_next_generation(breeders: list[Individual]) -> list[Individual]:
+    next_generation = []
+
+    for parent in breeders:
+        for _ in range(int(1 / SELECTION_RATE)):
+            child = Individual()
+            child.model.set_weights(parent.model.get_weights())
+            
+            mutate_weights(child.model)
+            next_generation.append(child)
+
+    return next_generation
 
 def simulator_worker(queue: Queue) -> None:
     sim = Simulator(spawn_indivs())
@@ -70,28 +95,15 @@ def simulator_worker(queue: Queue) -> None:
             average_times_healed = sum(map(lambda indiv: indiv.times_healed, sim.indivs)) / len(sim.indivs)
             print(f"Generation {SIMULATOR_RUNS - sims + 1} done. Average times healed: {average_times_healed}")
 
-            sims -= 1
-            steps = SIMULATOR_STEPS
-
-            sim.indivs.sort(key=lambda indiv: indiv.times_healed, reverse=True)
-
             for i, indiv in enumerate(sim.indivs):
-                indiv.model.save_weights(f"models/{i}.h5")
+                indiv.model.save_weights(f".models/{i}.h5")
 
-            num_breeders = math.floor(len(sim.indivs) * 0.2)
-            breeders = sim.indivs[:num_breeders]
-
-            next_generation = []
-            for parent in breeders:
-                for _ in range(5):
-                    position = (randint(0, GRID_SIZE), randint(0, GRID_SIZE))
-                    child = Individual(position)
-                    child.model.set_weights(parent.model.get_weights())
-                    
-                    mutate_weights(child.model)
-                    next_generation.append(child)
+            breeders = select_breeders(sim.indivs)
+            next_generation = spawn_next_generation(breeders)
             
             sim = Simulator(next_generation)
+            sims -= 1
+            steps = SIMULATOR_STEPS
     
     queue.put(None)
     print("Simulator done")

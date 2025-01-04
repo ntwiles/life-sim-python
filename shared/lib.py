@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from random import randint
 
 import tensorflow as tf
 
@@ -15,6 +16,7 @@ PROFILER = False
 
 MUTATION_RATE = 0.1
 MUTATION_MAGNITUDE = 0.01
+SELECTION_RATE = 0.25
 
 # TODO: Maybe move this to simulator.
 class Individual:
@@ -23,7 +25,8 @@ class Individual:
     times_healed: int
     model: tf.keras.Sequential
 
-    def __init__(self, start_position: tuple[int, int]):
+    def __init__(self):
+        start_position = (randint(0, GRID_SIZE - 1), randint(0, GRID_SIZE - 1))
         self.position = start_position
         self.previous_position = start_position
         self.times_healed = 0
