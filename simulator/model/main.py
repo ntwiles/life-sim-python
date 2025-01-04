@@ -3,7 +3,7 @@ import tensorflow as tf
 from shared.lib import INPUT_SIZE, Individual
 from simulator.main import IndividualUpdateContext
 
-def get_input_values(indiv: Individual, context: IndividualUpdateContext, t: int) -> list[float]:
+def get_input_values(indiv: Individual, context: IndividualUpdateContext, t: float) -> list[float]:
     prev_position_dir_x = indiv.position[0] - indiv.previous_position[0]
     prev_position_dir_y = indiv.position[1] - indiv.previous_position[1]
 
@@ -25,7 +25,7 @@ def get_input_values(indiv: Individual, context: IndividualUpdateContext, t: int
     
     return input_values
 
-def decide(indiv: Individual, context: IndividualUpdateContext, t: int) -> tuple[int, int]:
+def decide(indiv: Individual, context: IndividualUpdateContext, t: float) -> tuple[int, int]:
     output_values = [
         (0, 1),
         (1, 0),

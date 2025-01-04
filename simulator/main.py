@@ -5,9 +5,9 @@ from random import randint
 
 import tensorflow as tf
 
-from shared.lib import GRID_SIZE, HEAL_ZONE_RADIUS, INPUT_SIZE, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_HEAL_ZONES, NUM_INDIVS, SIMULATOR_RUNS, SIMULATOR_STEPS, HealZone, Individual, IndividualUpdateContext, PipeMessage
+from shared.lib import GRID_SIZE,MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SIMULATOR_RUNS, SIMULATOR_STEPS, HealZone, Individual, IndividualUpdateContext, PipeMessage
 from simulator.heal_zones import get_closest_heal_zone, spawn_heal_zones
-from simulator.network.main import decide
+from simulator.model.main import decide
 
 class Simulator:
     generation_time: int
@@ -21,11 +21,11 @@ class Simulator:
         self.heal_zones = spawn_heal_zones()
 
 
-    def update(self, t: int) -> list[IndividualUpdateContext]:
+    def update(self, t: float) -> list[IndividualUpdateContext]:
         return list(map(lambda indiv: self.update_individual(indiv, t), self.indivs))
 
 
-    def update_individual(self, indiv: Individual, t: int) -> IndividualUpdateContext:
+    def update_individual(self, indiv: Individual, t: float) -> IndividualUpdateContext:
         heal_zone, heal_zone_dist = get_closest_heal_zone(self.heal_zones, indiv.position)
 
         # TODO: Calculate this in `get_closest_heal_zone`.
@@ -73,8 +73,10 @@ def simulator_worker(queue: Queue) -> None:
             sims -= 1
             steps = SIMULATOR_STEPS
 
-
             sim.indivs.sort(key=lambda indiv: indiv.times_healed, reverse=True)
+
+            for i, indiv in enumerate(sim.indivs):
+                indiv.model.save_weights(f"models/{i}.h5")
 
             num_breeders = math.floor(len(sim.indivs) * 0.2)
             breeders = sim.indivs[:num_breeders]
