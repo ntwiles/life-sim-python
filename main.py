@@ -32,12 +32,12 @@ def make_process(target, *args, **kwargs):
 def main():
     queue = Queue()
 
-    simulator = make_process(simulator_worker, queue)
-    simulator.start()
+    # simulator = make_process(simulator_worker, queue)
+    # simulator.start()
 
     viewer_worker(queue)
 
-    simulator.kill()
+    # simulator.kill()
 
 if __name__ == "__main__":
     main()
