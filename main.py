@@ -3,7 +3,6 @@ from multiprocessing import Process, Queue
 import pstats
 
 from shared.lib import PROFILER
-from simulator.main import simulator_worker
 from viewer.main import viewer_worker
 
 
@@ -30,14 +29,7 @@ def make_process(target, *args, **kwargs):
         return Process(target=target, args=args, kwargs=kwargs)
 
 def main():
-    queue = Queue()
-
-    # simulator = make_process(simulator_worker, queue)
-    # simulator.start()
-
-    viewer_worker(queue)
-
-    # simulator.kill()
+    viewer_worker()
 
 if __name__ == "__main__":
     main()

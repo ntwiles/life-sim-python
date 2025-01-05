@@ -1,18 +1,16 @@
 
 import math
-from multiprocessing import Queue
 import pyglet
 from pyglet import shapes, text
 import tensorflow as tf
 
-from shared.lib import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, SIMULATOR_RUNS, SIMULATOR_STEPS, WINDOW_SCALE, HealZone, IndividualUpdateContext, PipeMessage
-from simulator.main import Simulator, select_breeders, spawn_initial_generation, spawn_next_generation
+from shared.lib import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, SIMULATOR_RUNS, SIMULATOR_STEPS, WINDOW_SCALE, HealZone, IndividualUpdateContext
+from simulator.main import Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
 
 class Viewer:
-    sim: Simulator
+    sim: Simulation
     steps: int
     sims: int
-    queue: Queue
     indiv_ids: list[shapes.Circle]
     heal_zone_ids: list[shapes.Circle]
     indiv_updates: list[IndividualUpdateContext] | None
@@ -20,8 +18,7 @@ class Viewer:
     label: text.Label
     rendering_enabled: bool
     
-    def __init__(self, queue: Queue):
-        self.queue = queue
+    def __init__(self):
         self.window = pyglet.window.Window(GRID_SIZE * WINDOW_SCALE, GRID_SIZE * WINDOW_SCALE) # type: ignore
 
         self.rendering_enabled = True
@@ -103,7 +100,7 @@ class Viewer:
                 breeders = select_breeders(self.sim.indivs)
                 next_generation = spawn_next_generation(breeders)
                 
-                self.sim = Simulator(next_generation)
+                self.sim = Simulation(next_generation)
                 self.sims -= 1
                 self.steps = SIMULATOR_STEPS
 
@@ -114,13 +111,13 @@ class Viewer:
 
 
     def run(self):
-        self.sim = Simulator(spawn_initial_generation())
+        self.sim = Simulation(spawn_initial_generation())
         self.steps = SIMULATOR_STEPS
         self.sims = SIMULATOR_RUNS
         pyglet.app.run()
 
 
-def viewer_worker(queue: Queue) -> None:
-    viewer = Viewer(queue)
+def viewer_worker() -> None:
+    viewer = Viewer()
     viewer.run()
     print('Viewer worker done')

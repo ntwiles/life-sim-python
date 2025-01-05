@@ -10,7 +10,7 @@ from simulator.individual import Individual
 from simulator.model.main import decide
 from simulator.utils import normalize_vector
 
-class Simulator:
+class Simulation:
     generation_time: int
     indivs: list[Individual]
     heal_zones: list[HealZone]
@@ -20,6 +20,7 @@ class Simulator:
 
         self.indivs = indivs
         self.heal_zones = spawn_heal_zones()
+        
 
     def update(self, t: float) -> list[IndividualUpdateContext]:
         return list(map(lambda indiv: self.update_individual(indiv, t), self.indivs))
@@ -91,33 +92,5 @@ def spawn_next_generation(breeders: list[Individual]) -> list[Individual]:
             next_generation.append(child)
 
     return next_generation
-
-def simulator_worker(queue: Queue) -> None:
-    sim = Simulator(spawn_initial_generation())
-    steps = SIMULATOR_STEPS
-    sims = SIMULATOR_RUNS
-
-    with tf.device('/GPU:0'):       
-        while sims > 0:
-            while steps > 0:
-                indiv_updates = sim.update(steps / SIMULATOR_STEPS)
-                queue.put(PipeMessage(indiv_updates, sim.heal_zones))
-                steps -= 1
-
-            average_times_healed = sum(map(lambda indiv: indiv.times_healed, sim.indivs)) / len(sim.indivs)
-            print(f"Generation {SIMULATOR_RUNS - sims + 1} done. Average times healed: {average_times_healed}")
-
-            for i, indiv in enumerate(sim.indivs):
-                indiv.model.save_weights(f".models/{i}.h5")
-
-            breeders = select_breeders(sim.indivs)
-            next_generation = spawn_next_generation(breeders)
-            
-            sim = Simulator(next_generation)
-            sims -= 1
-            steps = SIMULATOR_STEPS
-    
-    queue.put(None)
-    print("Simulator done")
 
 
