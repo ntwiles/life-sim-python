@@ -27,12 +27,12 @@ class Viewer:
 
         self.heal_zone_ids = []
         for _ in range(NUM_HEAL_ZONES):
-            self.heal_zone_ids.append(shapes.Circle(0, 0, WINDOW_SCALE, color=(110, 255, 100, 60)))
+            self.heal_zone_ids.append(shapes.Circle(0, 0, WINDOW_SCALE, color=(110, 255, 100, 60), segments=32))
 
 
         self.label = pyglet.text.Label('',
                                 font_name='Times New Roman',
-                                font_size=18,
+                                font_size=12,
                                 x=20, y=20,
                                 color=(255, 255, 255, 255),
                                 anchor_x='left', anchor_y='bottom')
@@ -65,8 +65,9 @@ class Viewer:
                 times_healed = 0
 
                 for i, update in enumerate(self.indiv_updates):
-                    # 50 denominator is arbitrary
-                    percent_healed = min(update.times_healed / 50, 1)
+                    times_healed += update.times_healed
+                    # 100 denominator is arbitrary
+                    percent_healed = min(update.times_healed / 100, 1)
                     r = 255 - math.floor(percent_healed * 255)
                     g = 255
                     b = 255

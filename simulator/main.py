@@ -1,13 +1,14 @@
 import math
 from multiprocessing import Queue
-from random import randint
 import random
 
 import tensorflow as tf
 
-from shared.lib import LOAD_MODELS, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE, SIMULATOR_RUNS, SIMULATOR_STEPS, HealZone, Individual, IndividualUpdateContext, PipeMessage
+from shared.lib import HEAL_ZONE_RADIUS, LOAD_MODELS, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE, SIMULATOR_RUNS, SIMULATOR_STEPS, HealZone, IndividualUpdateContext, PipeMessage
 from simulator.heal_zones import get_closest_heal_zone, spawn_heal_zones
+from simulator.individual import Individual
 from simulator.model.main import decide
+from simulator.utils import normalize_vector
 
 class Simulator:
     generation_time: int
@@ -20,7 +21,6 @@ class Simulator:
         self.indivs = indivs
         self.heal_zones = spawn_heal_zones()
 
-
     def update(self, t: float) -> list[IndividualUpdateContext]:
         return list(map(lambda indiv: self.update_individual(indiv, t), self.indivs))
 
@@ -30,12 +30,12 @@ class Simulator:
 
         # TODO: Calculate this in `get_closest_heal_zone`.
         heal_zone_disp = (heal_zone.position[0] - indiv.position[0], heal_zone.position[1] - indiv.position[1])
-        heal_zone_angle = math.atan2(heal_zone_disp[1], heal_zone_disp[0])
+        heal_zone_dir = normalize_vector(heal_zone_disp)
 
         if heal_zone_dist < heal_zone.radius:
             indiv.times_healed += 1
 
-        context = IndividualUpdateContext(heal_zone_angle, heal_zone_dist / MAX_LENGTH, indiv.position, indiv.times_healed)
+        context = IndividualUpdateContext(heal_zone_dir, heal_zone_dist / MAX_LENGTH, indiv.position, indiv.times_healed)
 
         decision = decide(indiv, context, t)
 
@@ -70,8 +70,11 @@ def spawn_initial_generation() -> list[Individual]:
         indiv = Individual()
 
         if LOAD_MODELS:
-            indiv.model.load_weights(f".models/{i}.h5")
-            
+            try:
+                indiv.model.load_weights(f".models/{i}.h5")
+            except Exception as e:
+                print(f"Failed to load model, initializing randomly. Error: {e}")
+
         indivs.append(indiv)
 
     return indivs
