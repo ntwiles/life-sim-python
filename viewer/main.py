@@ -66,8 +66,8 @@ class Viewer:
 
                 for i, update in enumerate(self.indiv_updates):
                     times_healed += update.times_healed
-                    # 100 denominator is arbitrary
-                    percent_healed = min(update.times_healed / 100, 1)
+                    # 280 denominator is based on theoretical average maximum times healed.
+                    percent_healed = min(update.times_healed / 280, 1)
                     r = 255 - math.floor(percent_healed * 255)
                     g = 255
                     b = 255
