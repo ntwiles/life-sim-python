@@ -7,10 +7,10 @@ import tensorflow as tf
 from shared.lib import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, SIMULATOR_RUNS, SIMULATOR_STEPS, WINDOW_SCALE, HealZone, IndividualUpdateContext
 from simulator.main import Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
 
-class Viewer:
+class Application:
     sim: Simulation
-    steps: int
-    sims: int
+    steps_remaining: int
+    runs_remaining: int
     indiv_ids: list[shapes.Circle]
     heal_zone_ids: list[shapes.Circle]
     indiv_updates: list[IndividualUpdateContext] | None
@@ -33,17 +33,16 @@ class Viewer:
 
 
         self.label = pyglet.text.Label('',
-                                font_name='Times New Roman',
-                                font_size=12,
-                                x=20, y=20,
-                                color=(255, 255, 255, 255),
-                                anchor_x='left', anchor_y='bottom')
+            font_name='Times New Roman',
+            font_size=12,
+            x=20, y=20,
+            color=(255, 255, 255, 255),
+            anchor_x='left', anchor_y='bottom')
 
         self.indiv_updates = None
         self.heal_zones = None
 
         pyglet.clock.schedule_interval(self.update, 1/60.0)
-
         self.window.push_handlers(self)
 
 
@@ -86,13 +85,13 @@ class Viewer:
 
     def update(self, _dt: float):
         with tf.device('/GPU:0'):
-            self.indiv_updates = self.sim.update(self.steps / SIMULATOR_STEPS)
+            self.indiv_updates = self.sim.update(self.steps_remaining / SIMULATOR_STEPS)
             self.heal_zones = self.sim.heal_zones
-            self.steps -= 1
+            self.steps_remaining -= 1
 
-            if self.steps == 0:
+            if self.steps_remaining == 0:
                 average_times_healed = sum(map(lambda indiv: indiv.times_healed, self.sim.indivs)) / len(self.sim.indivs)
-                print(f"Generation {SIMULATOR_RUNS - self.sims + 1} done. Average times healed: {average_times_healed}")
+                print(f"Generation {SIMULATOR_RUNS - self.runs_remaining + 1} done. Average times healed: {average_times_healed}")
 
                 for i, indiv in enumerate(self.sim.indivs):
                     indiv.model.save_weights(f".models/{i}.h5")
@@ -101,10 +100,11 @@ class Viewer:
                 next_generation = spawn_next_generation(breeders)
                 
                 self.sim = Simulation(next_generation)
-                self.sims -= 1
-                self.steps = SIMULATOR_STEPS
 
-            if self.sims == 0:
+                self.runs_remaining -= 1
+                self.steps_remaining = SIMULATOR_STEPS
+
+            if self.runs_remaining == 0:
                 print("Simulator done")
                 pyglet.app.exit()
                 return
@@ -112,12 +112,7 @@ class Viewer:
 
     def run(self):
         self.sim = Simulation(spawn_initial_generation())
-        self.steps = SIMULATOR_STEPS
-        self.sims = SIMULATOR_RUNS
+        self.steps_remaining = SIMULATOR_STEPS
+        self.runs_remaining = SIMULATOR_RUNS
+        
         pyglet.app.run()
-
-
-def viewer_worker() -> None:
-    viewer = Viewer()
-    viewer.run()
-    print('Viewer worker done')

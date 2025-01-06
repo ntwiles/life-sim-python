@@ -3,8 +3,7 @@ from multiprocessing import Process, Queue
 import pstats
 
 from shared.lib import PROFILER
-from viewer.main import viewer_worker
-
+from application import Application
 
 def run_with_profiling(target, *args, **kwargs):
     profiler = cProfile.Profile()
@@ -29,7 +28,8 @@ def make_process(target, *args, **kwargs):
         return Process(target=target, args=args, kwargs=kwargs)
 
 def main():
-    viewer_worker()
+    app = Application()
+    app.run()
 
 if __name__ == "__main__":
     main()

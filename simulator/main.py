@@ -4,7 +4,7 @@ import random
 
 import tensorflow as tf
 
-from shared.lib import HEAL_ZONE_RADIUS, LOAD_MODELS, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE, SIMULATOR_RUNS, SIMULATOR_STEPS, HealZone, IndividualUpdateContext, PipeMessage
+from shared.lib import LOAD_MODELS, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE, HealZone, IndividualUpdateContext
 from simulator.heal_zones import get_closest_heal_zone, spawn_heal_zones
 from simulator.individual import Individual
 from simulator.model.main import decide
