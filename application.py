@@ -1,21 +1,30 @@
 
+from collections import deque
 import math
+import time
 import pyglet
 from pyglet import shapes, text
 import tensorflow as tf
 
-from shared.lib import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, SIMULATOR_RUNS, SIMULATOR_STEPS, WINDOW_SCALE, HealZone, IndividualUpdateContext
+from shared.lib import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, SIMULATOR_STEPS, WINDOW_SCALE, IndividualUpdateContext
 from simulator.main import Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
 
 class Application:
     sim: Simulation
     steps_remaining: int
-    runs_remaining: int
+
+    indiv_updates: list[IndividualUpdateContext] | None
+    avg_times_healed: float
+    last_k_avg_times_healed: deque[float]
+    moving_avg_times_healed: float
+    time_started: float
+
     indiv_ids: list[shapes.Circle]
     heal_zone_ids: list[shapes.Circle]
-    indiv_updates: list[IndividualUpdateContext] | None
-    heal_zones: list[HealZone] | None
+    layout: text.layout.TextLayout
+    stats_document: text.document.UnformattedDocument
     label: text.Label
+
     rendering_enabled: bool
     
     def __init__(self):
@@ -32,15 +41,24 @@ class Application:
             self.heal_zone_ids.append(shapes.Circle(0, 0, WINDOW_SCALE, color=(110, 255, 100, 60), segments=32))
 
 
-        self.label = pyglet.text.Label('',
+        style = dict(
+            margin_left="10px",
+            margin_top="10px",
             font_name='Times New Roman',
             font_size=12,
-            x=20, y=20,
-            color=(255, 255, 255, 255),
-            anchor_x='left', anchor_y='bottom')
+            color=(255, 255, 255, 255)
+        )
+
+        self.stats_document = text.decode_text('')
+        self.stats_document.set_style(0, len(self.stats_document.text), style)
+        self.layout = text.layout.TextLayout(self.stats_document, GRID_SIZE * WINDOW_SCALE, GRID_SIZE * WINDOW_SCALE, multiline=True)
 
         self.indiv_updates = None
-        self.heal_zones = None
+        self.avg_times_healed = 0
+        self.moving_avg_times_healed = 0
+        self.last_k_avg_times_healed = deque(maxlen=20)
+        self.last_run_time = 0.0
+        self.time_started = time.time()
 
         pyglet.clock.schedule_interval(self.update, 1/60.0)
         self.window.push_handlers(self)
@@ -55,18 +73,15 @@ class Application:
         self.window.clear()
 
         if self.rendering_enabled:
-            if self.heal_zones is not None:
-                for heal_zone in self.heal_zones:
+            if self.sim.heal_zones is not None:
+                for heal_zone in self.sim.heal_zones:
                     circle = self.heal_zone_ids[0]
                     circle.radius = heal_zone.radius * WINDOW_SCALE
                     circle.position = heal_zone.position[0] * WINDOW_SCALE, heal_zone.position[1] * WINDOW_SCALE
                     circle.draw()
 
             if self.indiv_updates is not None:
-                times_healed = 0
-
                 for i, update in enumerate(self.indiv_updates):
-                    times_healed += update.times_healed
                     # 280 denominator is based on theoretical average maximum times healed.
                     percent_healed = min(update.times_healed / 280, 1)
                     r = 255 - math.floor(percent_healed * 255)
@@ -78,21 +93,24 @@ class Application:
                     circle.color = (r, g, b, 255)
                     circle.draw()
 
-                # Estimation not aligned with the simulator.
-                self.label.text = f'Avg. times healed: {times_healed / NUM_INDIVS}'
-                self.label.draw()
+                analytics = [
+                    f"Avg. fitness: { round(self.avg_times_healed, 2) }",
+                    f"Moving avg. fitness: { round(self.moving_avg_times_healed, 2) }",
+                    f"Steps remaining: {self.steps_remaining}",
+                    f"Last run time: { round(self.last_run_time, 2) }s"
+                ]
+
+                self.stats_document.text = '\n'.join(analytics)
+                self.layout.draw()
     
 
     def update(self, _dt: float):
         with tf.device('/GPU:0'):
             self.indiv_updates = self.sim.update(self.steps_remaining / SIMULATOR_STEPS)
-            self.heal_zones = self.sim.heal_zones
             self.steps_remaining -= 1
+            self.avg_times_healed = sum(map(lambda indiv: indiv.times_healed, self.sim.indivs)) / len(self.sim.indivs)
 
             if self.steps_remaining == 0:
-                average_times_healed = sum(map(lambda indiv: indiv.times_healed, self.sim.indivs)) / len(self.sim.indivs)
-                print(f"Generation {SIMULATOR_RUNS - self.runs_remaining + 1} done. Average times healed: {average_times_healed}")
-
                 for i, indiv in enumerate(self.sim.indivs):
                     indiv.model.save_weights(f".models/{i}.h5")
 
@@ -101,18 +119,18 @@ class Application:
                 
                 self.sim = Simulation(next_generation)
 
-                self.runs_remaining -= 1
+
                 self.steps_remaining = SIMULATOR_STEPS
 
-            if self.runs_remaining == 0:
-                print("Simulator done")
-                pyglet.app.exit()
-                return
+                # TODO: Maybe this should be done in the Simulation class.
+                self.last_k_avg_times_healed.append(self.avg_times_healed)
+                self.moving_avg_times_healed = sum(self.last_k_avg_times_healed) / len(self.last_k_avg_times_healed)
+                self.last_run_time = time.time() - self.time_started
+                self.time_started = time.time()
 
 
     def run(self):
         self.sim = Simulation(spawn_initial_generation())
         self.steps_remaining = SIMULATOR_STEPS
-        self.runs_remaining = SIMULATOR_RUNS
-        
+
         pyglet.app.run()

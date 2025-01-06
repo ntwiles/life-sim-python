@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-SIMULATOR_RUNS = 100000
 SIMULATOR_STEPS = 300
 NUM_INDIVS = 50
 INPUT_SIZE = 5
