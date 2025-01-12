@@ -1,7 +1,15 @@
 import math
 from random import randint
-from shared.lib import GRID_SIZE, HEAL_ZONE_RADIUS, NUM_HEAL_ZONES, HealZone
 
+from config import GRID_SIZE, HEAL_ZONE_RADIUS, NUM_HEAL_ZONES
+
+class HealZone:
+    position: tuple[int, int]
+    radius: int
+
+    def __init__(self, position: tuple[int, int], radius: int):
+        self.position = position
+        self.radius = radius
 
 def get_closest_heal_zone(heal_zones: list[HealZone], position: tuple[int, int]) -> tuple[HealZone, float]:
     closest_heal_zone = heal_zones[0]

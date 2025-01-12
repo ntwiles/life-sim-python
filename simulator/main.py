@@ -1,12 +1,11 @@
 import math
-from multiprocessing import Queue
 import random
 
 import tensorflow as tf
 
-from shared.lib import LOAD_MODELS, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE, HealZone, IndividualUpdateContext
-from simulator.heal_zones import get_closest_heal_zone, spawn_heal_zones
-from simulator.individual import Individual
+from config import LOAD_MODELS, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE
+from simulator.heal_zones import HealZone, get_closest_heal_zone, spawn_heal_zones
+from simulator.individual import Individual, IndividualUpdateContext
 from simulator.model.main import decide
 from simulator.utils import normalize_vector
 

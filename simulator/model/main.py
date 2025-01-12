@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-from shared.lib import INPUT_SIZE
+from config import INPUT_SIZE
 from simulator.individual import Individual
 from simulator.main import IndividualUpdateContext
 

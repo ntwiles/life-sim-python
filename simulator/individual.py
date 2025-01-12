@@ -1,7 +1,15 @@
+from dataclasses import dataclass
 from random import randint
 import tensorflow as tf
 
-from shared.lib import GRID_SIZE, INPUT_SIZE
+from config import GRID_SIZE, INPUT_SIZE
+
+@dataclass
+class IndividualUpdateContext:
+    heal_zone_dir: tuple[float, float]
+    heal_zone_dist: float
+    next_position: tuple[int, int]
+    times_healed: int
 
 class Individual:
     position: tuple[int, int]
@@ -17,6 +25,7 @@ class Individual:
 
         layers = [
             tf.keras.layers.Input(shape=INPUT_SIZE),
+            tf.keras.layers.Dense(15, activation='relu'),
             tf.keras.layers.Dense(15, activation='relu'),
             tf.keras.layers.Dense(15, activation='relu'),
             tf.keras.layers.Dense(5, activation='softmax')

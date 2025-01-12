@@ -1,9 +1,9 @@
 import cProfile
-from multiprocessing import Process, Queue
+from multiprocessing import Process
 import pstats
 
-from shared.lib import PROFILER
 from application import Application
+from config import PROFILER
 
 def run_with_profiling(target, *args, **kwargs):
     profiler = cProfile.Profile()
