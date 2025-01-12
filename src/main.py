@@ -4,6 +4,7 @@ import random
 import tensorflow as tf
 
 from config import LOAD_MODELS, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE
+from src.services.individuals import load_individuals
 from src.heal_zones import HealZone, get_closest_heal_zone, spawn_heal_zones
 from src.individual import Individual, IndividualUpdateContext
 from src.model.main import decide
@@ -64,20 +65,11 @@ def select_breeders(indivs: list[Individual]) -> list[Individual]:
     return random.choices(indivs, weights=probabilities, k=num_breeders)
 
 def spawn_initial_generation() -> list[Individual]:
-    indivs = []
+    if LOAD_MODELS:
+        return load_individuals()
+    else:
+        return [Individual() for _ in range(NUM_INDIVS)]
 
-    for i in range(NUM_INDIVS):
-        indiv = Individual()
-
-        if LOAD_MODELS:
-            try:
-                indiv.model.load_weights(f".models/{i}.h5")
-            except Exception as e:
-                print(f"Failed to load model, initializing randomly. Error: {e}")
-
-        indivs.append(indiv)
-
-    return indivs
 
 def spawn_next_generation(breeders: list[Individual]) -> list[Individual]:
     next_generation = []
