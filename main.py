@@ -2,7 +2,7 @@ import cProfile
 from multiprocessing import Process
 import pstats
 
-from application import Application
+from src.application import Application
 from config import PROFILER
 
 def run_with_profiling(target, *args, **kwargs):

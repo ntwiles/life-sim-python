@@ -7,7 +7,7 @@ from pyglet import shapes, text
 import tensorflow as tf
 
 from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, SIMULATOR_STEPS, WINDOW_SCALE
-from simulator.main import IndividualUpdateContext, Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
+from src.main import IndividualUpdateContext, Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
 
 class Application:
     sim: Simulation

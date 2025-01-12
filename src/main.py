@@ -4,10 +4,10 @@ import random
 import tensorflow as tf
 
 from config import LOAD_MODELS, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE
-from simulator.heal_zones import HealZone, get_closest_heal_zone, spawn_heal_zones
-from simulator.individual import Individual, IndividualUpdateContext
-from simulator.model.main import decide
-from simulator.utils import normalize_vector
+from src.heal_zones import HealZone, get_closest_heal_zone, spawn_heal_zones
+from src.individual import Individual, IndividualUpdateContext
+from src.model.main import decide
+from src.utils import normalize_vector
 
 class Simulation:
     generation_time: int

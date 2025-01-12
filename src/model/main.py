@@ -2,8 +2,8 @@ import numpy as np
 import tensorflow as tf
 
 from config import INPUT_SIZE
-from simulator.individual import Individual
-from simulator.main import IndividualUpdateContext
+from src.individual import Individual
+from src.main import IndividualUpdateContext
 
 def get_input_values(indiv: Individual, context: IndividualUpdateContext, t: float) -> list[float]:
     prev_position_dir_x = indiv.position[0] - indiv.previous_position[0]
