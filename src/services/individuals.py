@@ -11,7 +11,7 @@ def load_individuals() -> list[Individual]:
 
         if LOAD_MODELS:
             try:
-                indiv.model.load_weights(f".models/{i}.h5")
+                indiv.model.inner.load_weights(f".models/{i}.h5")
             except Exception as e:
                 print(f"Failed to load model, initializing randomly. Error: {e}")
 

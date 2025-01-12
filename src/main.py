@@ -4,10 +4,10 @@ import random
 import tensorflow as tf
 
 from config import LOAD_MODELS, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE
+from src.model.propagation import decide
 from src.services.individuals import load_individuals
 from src.heal_zones import HealZone, get_closest_heal_zone, spawn_heal_zones
 from src.individual import Individual, IndividualUpdateContext
-from src.model.main import decide
 from src.utils import normalize_vector
 
 class Simulation:
@@ -47,7 +47,7 @@ class Simulation:
         return context
 
 def mutate_weights(model: tf.keras.Sequential):
-    for var in model.trainable_variables:
+    for var in model.inner.trainable_variables:
         mutation_mask = tf.random.uniform(var.shape) < MUTATION_RATE
         random_mutations = tf.random.normal(var.shape, mean=0.0, stddev=MUTATION_MAGNITUDE)
         var.assign(tf.where(mutation_mask, var + random_mutations, var))
@@ -77,7 +77,7 @@ def spawn_next_generation(breeders: list[Individual]) -> list[Individual]:
     for parent in breeders:
         for _ in range(int(1 / SELECTION_RATE)):
             child = Individual()
-            child.model.set_weights(parent.model.get_weights())
+            child.model.inner.set_weights(parent.model.inner.get_weights())
             
             mutate_weights(child.model)
             next_generation.append(child)

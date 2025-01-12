@@ -112,7 +112,7 @@ class Application:
 
             if self.steps_remaining == 0:
                 for i, indiv in enumerate(self.sim.indivs):
-                    indiv.model.save_weights(f".models/{i}.h5")
+                    indiv.model.inner.save_weights(f".models/{i}.h5")
 
                 breeders = select_breeders(self.sim.indivs)
                 next_generation = spawn_next_generation(breeders)
