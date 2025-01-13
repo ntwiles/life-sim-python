@@ -7,6 +7,7 @@ from pyglet import shapes, text
 import tensorflow as tf
 
 from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, SIMULATOR_STEPS, WINDOW_SCALE
+from src.services.individuals import save_individuals
 from src.main import IndividualUpdateContext, Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
 
 class Application:
@@ -97,7 +98,8 @@ class Application:
                     f"Avg. fitness: { round(self.avg_times_healed, 2) }",
                     f"Moving avg. fitness: { round(self.moving_avg_times_healed, 2) }",
                     f"Steps remaining: {self.steps_remaining}",
-                    f"Last run time: { round(self.last_run_time, 2) }s"
+                    f"Last run time: { round(self.last_run_time, 2) }s",
+                    f"Num simulations: { self.sim.indivs[0].model.num_simulations }"
                 ]
 
                 self.stats_document.text = '\n'.join(analytics)
@@ -111,8 +113,10 @@ class Application:
             self.avg_times_healed = sum(map(lambda indiv: indiv.times_healed, self.sim.indivs)) / len(self.sim.indivs)
 
             if self.steps_remaining == 0:
-                for i, indiv in enumerate(self.sim.indivs):
-                    indiv.model.inner.save_weights(f".models/{i}.h5")
+                for indiv in self.sim.indivs:
+                    indiv.model.num_simulations += 1
+
+                save_individuals(self.sim.indivs)
 
                 breeders = select_breeders(self.sim.indivs)
                 next_generation = spawn_next_generation(breeders)

@@ -4,6 +4,7 @@ from config import INPUT_SIZE
 
 class Model:
     inner: tf.keras.Sequential
+    num_simulations: int
 
     def __init__(self):
         self.inner = tf.keras.Sequential([

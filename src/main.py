@@ -77,6 +77,7 @@ def spawn_next_generation(breeders: list[Individual]) -> list[Individual]:
     for parent in breeders:
         for _ in range(int(1 / SELECTION_RATE)):
             child = Individual()
+            child.model.num_simulations = parent.model.num_simulations
             child.model.inner.set_weights(parent.model.inner.get_weights())
             
             mutate_weights(child.model)
