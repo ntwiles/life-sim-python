@@ -8,7 +8,7 @@ import tensorflow as tf
 
 from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, SIMULATOR_STEPS, WINDOW_SCALE
 from src.services.individuals import save_individuals
-from src.main import IndividualUpdateContext, Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
+from src.simulation import IndividualUpdateContext, Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
 
 class Application:
     sim: Simulation
@@ -131,6 +131,9 @@ class Application:
                 self.moving_avg_times_healed = sum(self.last_k_avg_times_healed) / len(self.last_k_avg_times_healed)
                 self.last_run_time = time.time() - self.time_started
                 self.time_started = time.time()
+
+            if self.moving_avg_times_healed > 270:
+                pyglet.app.exit()
 
 
     def run(self):
