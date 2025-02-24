@@ -1,8 +1,8 @@
 
 
 import json
-from config import LOAD_MODELS, NUM_INDIVS
-from src.individual import Individual
+from config import NUM_INDIVS
+from src.simulation.individual import Individual
 
 def save_individuals(indivs: list[Individual]):
     for i, indiv in enumerate(indivs):

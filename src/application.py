@@ -8,7 +8,7 @@ import tensorflow as tf
 
 from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, SIMULATOR_STEPS, WINDOW_SCALE
 from src.services.individuals import save_individuals
-from src.simulation import IndividualUpdateContext, Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
+from src.simulation.main import IndividualUpdateContext, Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
 
 class Application:
     sim: Simulation
