@@ -4,6 +4,7 @@ import random
 import tensorflow as tf
 
 from config import LOAD_MODELS, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE
+from src.simulation.rad_zones import RadZone, get_closest_rad_zone, spawn_rad_zones
 from src.model.propagation import decide
 from src.services.individuals import load_individuals
 from src.simulation.heal_zones import HealZone, get_closest_heal_zone, spawn_heal_zones
@@ -14,19 +15,20 @@ class Simulation:
     generation_time: int
     indivs: list[Individual]
     heal_zones: list[HealZone]
+    rad_zones: list[RadZone]
 
     def __init__(self, indivs: list[Individual]):
         self.generation_time = 0
 
         self.indivs = indivs
         self.heal_zones = spawn_heal_zones()
+        self.rad_zones = spawn_rad_zones()
         
 
     def update(self, t: float) -> list[IndividualUpdateContext]:
         return list(map(lambda indiv: self.update_individual(indiv, t), self.indivs))
-
-
-    def update_individual(self, indiv: Individual, t: float) -> IndividualUpdateContext:
+    
+    def handle_heal_zones(self, indiv: Individual):
         heal_zone, heal_zone_dist = get_closest_heal_zone(self.heal_zones, indiv.position)
 
         # TODO: Calculate this in `get_closest_heal_zone`.
@@ -36,7 +38,33 @@ class Simulation:
         if heal_zone_dist < heal_zone.radius:
             indiv.times_healed += 1
 
-        context = IndividualUpdateContext(heal_zone_dir, heal_zone_dist / MAX_LENGTH, indiv.position, indiv.times_healed)
+        return (heal_zone_dir, heal_zone_dist)
+    
+    def handle_rad_zones(self, indiv: Individual):
+        rad_zone, rad_zone_dist = get_closest_rad_zone(self.rad_zones, indiv.position)
+        
+        # TODO: Calculate this in `get_closest_rad_zone`.
+        rad_zone_disp = (rad_zone.position[0] - indiv.position[0], rad_zone.position[1] - indiv.position[1])
+        rad_zone_dir = normalize_vector(rad_zone_disp)
+
+        if rad_zone_dist < rad_zone.radius:
+            indiv.times_healed -= 1
+
+        return (rad_zone_dir, rad_zone_dist)
+
+
+    def update_individual(self, indiv: Individual, t: float) -> IndividualUpdateContext:
+        (heal_zone_dir, heal_zone_dist) = self.handle_heal_zones(indiv)
+        (rad_zone_dir, rad_zone_dist) = self.handle_rad_zones(indiv)
+
+        context = IndividualUpdateContext(
+            heal_zone_dir, 
+            heal_zone_dist / MAX_LENGTH,
+            rad_zone_dir,
+            rad_zone_dist / MAX_LENGTH,
+            indiv.position, 
+            indiv.times_healed
+        )
 
         decision = decide(indiv, context, t)
 

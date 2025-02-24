@@ -6,7 +6,7 @@ import pyglet
 from pyglet import shapes, text
 import tensorflow as tf
 
-from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, SIMULATOR_STEPS, WINDOW_SCALE
+from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, NUM_RAD_ZONES, SIMULATOR_STEPS, WINDOW_SCALE
 from src.services.individuals import save_individuals
 from src.simulation.main import IndividualUpdateContext, Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
 
@@ -41,7 +41,10 @@ class Application:
         for _ in range(NUM_HEAL_ZONES):
             self.heal_zone_ids.append(shapes.Circle(0, 0, WINDOW_SCALE, color=(110, 255, 100, 60), segments=32))
 
-
+        self.rad_zone_ids = []
+        for _ in range(NUM_RAD_ZONES):
+            self.rad_zone_ids.append(shapes.Circle(0, 0, WINDOW_SCALE, color=(255, 100, 100, 60), segments=32))
+            
         style = dict(
             margin_left="10px",
             margin_top="10px",
@@ -76,9 +79,18 @@ class Application:
         if self.rendering_enabled:
             if self.sim.heal_zones is not None:
                 for heal_zone in self.sim.heal_zones:
+                    # TODO: Why are we just grabbing the first circle instance? If this works, maybe we should only 
+                    # make a single instance altogether and use it as a brush. Same goes for rad_zones.
                     circle = self.heal_zone_ids[0]
                     circle.radius = heal_zone.radius * WINDOW_SCALE
                     circle.position = heal_zone.position[0] * WINDOW_SCALE, heal_zone.position[1] * WINDOW_SCALE
+                    circle.draw()
+
+            if self.sim.rad_zones is not None:
+                for rad_zone in self.sim.rad_zones:
+                    circle = self.rad_zone_ids[0]
+                    circle.radius = rad_zone.radius * WINDOW_SCALE
+                    circle.position = rad_zone.position[0] * WINDOW_SCALE, rad_zone.position[1] * WINDOW_SCALE
                     circle.draw()
 
             if self.indiv_updates is not None:
