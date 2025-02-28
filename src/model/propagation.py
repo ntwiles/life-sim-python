@@ -8,6 +8,7 @@ def get_input_values(indiv: Individual, context: IndividualUpdateContext, t: flo
     prev_position_dir_y = indiv.position[1] - indiv.previous_position[1]
 
     heal_zone_dir_x, heal_zone_dir_y = context.heal_zone_dir
+    rad_zone_dir_x, rad_zone_dir_y = context.rad_zone_dir
 
     input_values = [
         prev_position_dir_x,
@@ -15,6 +16,9 @@ def get_input_values(indiv: Individual, context: IndividualUpdateContext, t: flo
         context.heal_zone_dist,
         heal_zone_dir_x,
         heal_zone_dir_y,
+        context.rad_zone_dist,
+        rad_zone_dir_x,
+        rad_zone_dir_y,
     ]
 
     if len(input_values) != INPUT_SIZE:
