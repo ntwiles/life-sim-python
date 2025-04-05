@@ -1,32 +1,10 @@
-import numpy as np
+from typing import Any
+from numpy.typing import NDArray
 import tensorflow as tf
-from config import INPUT_SIZE
-from src.simulation.individual import Individual, IndividualUpdateContext
 
-def get_input_values(indiv: Individual, context: IndividualUpdateContext, t: float) -> list[float]:
-    prev_position_dir_x = indiv.position[0] - indiv.previous_position[0]
-    prev_position_dir_y = indiv.position[1] - indiv.previous_position[1]
+from src.model.main import Model
 
-    heal_zone_dir_x, heal_zone_dir_y = context.heal_zone_dir
-    rad_zone_dir_x, rad_zone_dir_y = context.rad_zone_dir
-
-    input_values = [
-        prev_position_dir_x,
-        prev_position_dir_y,
-        context.heal_zone_dist,
-        heal_zone_dir_x,
-        heal_zone_dir_y,
-        context.rad_zone_dist,
-        rad_zone_dir_x,
-        rad_zone_dir_y,
-    ]
-
-    if len(input_values) != INPUT_SIZE:
-        raise ValueError(f"Expected {INPUT_SIZE} inputs, got {len(input_values)}")
-    
-    return input_values
-
-def decide(indiv: Individual, context: IndividualUpdateContext, t: float) -> tuple[int, int]:
+def decide(model: Model, input: NDArray[Any]) -> tuple[int, int]:
     output_values = [
         (0, 1),
         (1, 0),
@@ -34,10 +12,8 @@ def decide(indiv: Individual, context: IndividualUpdateContext, t: float) -> tup
         (-1, 0),
         (0, 0),
     ]
-               
-    input_values = np.array([get_input_values(indiv, context, t)])
 
-    output = indiv.model.inner(input_values)
+    output = model.inner(input)
     decision = tf.argmax(output, axis=1).numpy()[0]
 
     return output_values[decision]
