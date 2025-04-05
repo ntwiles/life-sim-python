@@ -3,7 +3,7 @@ import random
 
 import tensorflow as tf
 
-from config import LOAD_MODELS, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE
+from config import GRID_SIZE, LOAD_MODELS, MAX_LENGTH, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE
 from src.simulation.rad_zones import RadZone, get_closest_rad_zone, spawn_rad_zones
 from src.model.propagation import decide
 from src.services.individuals import load_individuals
@@ -26,7 +26,12 @@ class Simulation:
         
 
     def update(self, t: float) -> list[IndividualUpdateContext]:
+        self.update_rad_zones()
         return list(map(lambda indiv: self.update_individual(indiv, t), self.indivs))
+    
+    def update_rad_zones(self):
+        for rad_zone in self.rad_zones:
+            rad_zone.update()
     
     def handle_heal_zones(self, indiv: Individual):
         heal_zone, heal_zone_dist = get_closest_heal_zone(self.heal_zones, indiv.position)

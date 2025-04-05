@@ -96,10 +96,20 @@ class Application:
             if self.indiv_updates is not None:
                 for i, update in enumerate(self.indiv_updates):
                     # 280 denominator is based on theoretical average maximum times healed.
-                    percent_healed = min(update.times_healed / 280, 1)
-                    r = 255 - math.floor(percent_healed * 255)
-                    g = 255
-                    b = 255
+                    percent_healed = min(abs(update.times_healed) / 280, 1)
+
+                    r = 0
+                    g = 0
+                    b = 0
+                    
+                    if (update.times_healed > 0): 
+                        r = 255 - math.floor(percent_healed * 255)
+                        g = 255
+                        b = 255 - math.floor(percent_healed * 255)
+                    else: 
+                        r = 255
+                        g = 255 - math.floor(percent_healed * 255)
+                        b = 255 - math.floor(percent_healed * 255)
 
                     circle = self.indiv_ids[i]
                     circle.position = update.next_position[0] * WINDOW_SCALE, update.next_position[1] * WINDOW_SCALE
