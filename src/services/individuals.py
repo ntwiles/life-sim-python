@@ -6,7 +6,7 @@ from src.simulation.individual import Individual
 
 def save_individuals(indivs: list[Individual]):
     for i, indiv in enumerate(indivs):
-        indiv.model.inner.save_weights(f".models/{i}.h5")
+        indiv.model.inner.save_weights(f".models/{i}.weights.h5")
 
         with open(f".models/{i}.json", 'w') as file:
             data = {
@@ -23,7 +23,7 @@ def load_individual(id: int) -> Individual:
     indiv = Individual()
 
     try:
-        indiv.model.inner.load_weights(f".models/{id}.h5")
+        indiv.model.inner.load_weights(f".models/{id}.weights.h5")
 
         with open(f".models/{id}.json", 'r') as file:
             data = json.load(file)

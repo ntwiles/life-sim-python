@@ -145,7 +145,6 @@ class Application:
                 
                 self.sim = Simulation(next_generation)
 
-
                 self.steps_remaining = SIMULATOR_STEPS
 
                 # TODO: Maybe this should be done in the Simulation class.
