@@ -26,7 +26,7 @@ class Simulation:
         for rad_zone in self.rad_zones:
             rad_zone.update()
 
-        return list(map(lambda indiv: indiv.update(self.heal_zones, self.rad_zones, t), self.indivs))
+        return list(map(lambda indiv: indiv.update(self.heal_zones, self.rad_zones), self.indivs))
 
 def mutate_weights(model: tf.keras.Sequential):
     for var in model.inner.trainable_variables:

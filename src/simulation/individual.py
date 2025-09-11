@@ -56,7 +56,7 @@ class Individual:
 
         return (rad_zone_dir, rad_zone_dist)
 
-    def update(self, heal_zones: list[HealZone], rad_zones: list[RadZone], t: float) -> IndividualUpdateContext:
+    def update(self, heal_zones: list[HealZone], rad_zones: list[RadZone]) -> IndividualUpdateContext:
         (heal_zone_dir, heal_zone_dist) = self.handle_heal_zones(heal_zones)
         (rad_zone_dir, rad_zone_dist) = self.handle_rad_zones(rad_zones)
 
@@ -69,8 +69,7 @@ class Individual:
             self.times_healed
         )
 
-        input = np.array([self.get_input_values(context, t)])
-        decision = decide(self.model, input)
+        decision = decide(self.model, np.array([self.calculate_input_values(context)]))
 
         self.previous_position = self.position
         self.position = (self.position[0] + decision[0], self.position[1] + decision[1])
@@ -78,7 +77,7 @@ class Individual:
         context.next_position = self.position
         return context
     
-    def get_input_values(self, context: IndividualUpdateContext, t: float) -> list[float]:
+    def calculate_input_values(self, context: IndividualUpdateContext) -> list[float]:
         prev_position_dir_x = self.position[0] - self.previous_position[0]
         prev_position_dir_y = self.position[1] - self.previous_position[1]
 
