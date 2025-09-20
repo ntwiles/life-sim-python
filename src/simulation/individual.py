@@ -6,7 +6,7 @@ from config import GRID_SIZE, INPUT_SIZE, MAX_LENGTH
 from src.model.propagation import decide
 from src.simulation.heal_zones import HealZone, get_closest_heal_zone
 from src.simulation.rad_zones import RadZone, get_closest_rad_zone
-from src.model.main import Model
+from src.model.main import Model, create_model
 from src.utils import normalize_vector
 
 @dataclass
@@ -30,7 +30,7 @@ class Individual:
         self.previous_position = start_position
         self.times_healed = 0
 
-        self.model = Model()
+        self.model = create_model()
 
     def handle_heal_zones(self, heal_zones: list[HealZone]):
         heal_zone, heal_zone_dist = get_closest_heal_zone(heal_zones, self.position)
