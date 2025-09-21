@@ -52,7 +52,7 @@ class Individual:
         rad_zone_dir = normalize_vector(rad_zone_disp)
 
         if rad_zone_dist < rad_zone.radius:
-            self.times_healed -= 1
+            self.times_healed -= 2
 
         return (rad_zone_dir, rad_zone_dist)
 

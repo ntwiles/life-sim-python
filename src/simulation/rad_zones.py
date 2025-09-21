@@ -42,9 +42,9 @@ class RadZone:
 
 def get_closest_rad_zone(rad_zones: list[RadZone], position: tuple[int, int]) -> tuple[RadZone, float]:
     closest_rad_zone = rad_zones[0]
-    closest_rad_zone_dist = float('inf')
+    closest_rad_zone_dist = math.dist(closest_rad_zone.position, position)
 
-    for rad_zone in rad_zones:
+    for rad_zone in rad_zones[1:]:
         dist = math.dist(rad_zone.position, position)
         if dist < closest_rad_zone_dist:
             closest_rad_zone = rad_zone

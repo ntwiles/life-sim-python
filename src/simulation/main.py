@@ -3,7 +3,8 @@ import random
 
 import tensorflow as tf
 
-from config import LOAD_MODELS, MUTATION_MAGNITUDE, MUTATION_RATE, NUM_INDIVS, SELECTION_RATE
+from config import LOAD_MODELS, NUM_INDIVS, SELECTION_RATE
+from src.model.main import mutate_weights_with_gating
 from src.simulation.rad_zones import RadZone, spawn_rad_zones
 from src.services.individuals import load_individuals
 from src.simulation.heal_zones import HealZone, spawn_heal_zones
@@ -28,11 +29,7 @@ class Simulation:
 
         return list(map(lambda indiv: indiv.update(self.heal_zones, self.rad_zones), self.indivs))
 
-def mutate_weights(model: tf.keras.Sequential):
-    for var in model.inner.trainable_variables:
-        mutation_mask = tf.random.uniform(var.shape) < MUTATION_RATE
-        random_mutations = tf.random.normal(var.shape, mean=0.0, stddev=MUTATION_MAGNITUDE)
-        var.assign(tf.where(mutation_mask, var + random_mutations, var))
+
 
 def select_breeders(indivs: list[Individual]) -> list[Individual]:
     total_fitness = sum(indiv.times_healed for indiv in indivs)
@@ -57,12 +54,12 @@ def spawn_next_generation(breeders: list[Individual]) -> list[Individual]:
     next_generation = []
 
     for parent in breeders:
-        for _ in range(int(1 / SELECTION_RATE)):
+        for _ in range(int(round(1 / SELECTION_RATE))):
             child = Individual()
             child.model.num_simulations = parent.model.num_simulations
             child.model.inner.set_weights(parent.model.inner.get_weights())
             
-            mutate_weights(child.model)
+            mutate_weights_with_gating(child.model)
             next_generation.append(child)
 
     return next_generation

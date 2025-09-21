@@ -13,9 +13,9 @@ class HealZone:
 
 def get_closest_heal_zone(heal_zones: list[HealZone], position: tuple[int, int]) -> tuple[HealZone, float]:
     closest_heal_zone = heal_zones[0]
-    closest_heal_zone_dist = float('inf')
+    closest_heal_zone_dist = math.dist(closest_heal_zone.position, position)
 
-    for heal_zone in heal_zones:
+    for heal_zone in heal_zones[1:]:
         dist = math.dist(heal_zone.position, position)
         if dist < closest_heal_zone_dist:
             closest_heal_zone = heal_zone
