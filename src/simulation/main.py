@@ -4,7 +4,7 @@ import random
 import tensorflow as tf
 
 from config import LOAD_MODELS, NUM_INDIVS, SELECTION_RATE
-from src.model.main import clone_model, create_model, mutate_weights_with_gating
+from src.model.main import clone_model
 from src.simulation.rad_zones import RadZone, spawn_rad_zones
 from src.services.individuals import load_individuals
 from src.simulation.heal_zones import HealZone, spawn_heal_zones
@@ -56,9 +56,7 @@ def spawn_next_generation(breeders: list[Individual]) -> list[Individual]:
 
     for parent in breeders:
         for _ in range(int(round(1 / SELECTION_RATE))):
-            
-            model = clone_model(parent.model)
-            child = Individual(model)
+            child = Individual(clone_model(parent.model))
             next_generation.append(child)
 
     return next_generation

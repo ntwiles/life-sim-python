@@ -25,13 +25,13 @@ class Individual:
     times_healed: int
     model: Model
 
-    def __init__(self, model: Model = create_model()):
+    def __init__(self, model: Model | None = None):
         start_position = (randint(0, GRID_SIZE - 1), randint(0, GRID_SIZE - 1))
         self.position = start_position
         self.previous_position = start_position
         self.times_healed = 0
 
-        self.model = model
+        self.model = model if model is not None else create_model()
 
     def handle_heal_zones(self, heal_zones: list[HealZone]):
         heal_zone, heal_zone_dist = get_closest_heal_zone(heal_zones, self.position)
