@@ -15,6 +15,7 @@ class IndividualUpdateContext:
     heal_zone_dist: float
     rad_zone_dir: tuple[float, float]
     rad_zone_dist: float
+    rad_zone_move_dir: tuple[float, float]
     next_position: tuple[int, int]
     times_healed: int
 
@@ -24,13 +25,13 @@ class Individual:
     times_healed: int
     model: Model
 
-    def __init__(self):
+    def __init__(self, model: Model = create_model()):
         start_position = (randint(0, GRID_SIZE - 1), randint(0, GRID_SIZE - 1))
         self.position = start_position
         self.previous_position = start_position
         self.times_healed = 0
 
-        self.model = create_model()
+        self.model = model
 
     def handle_heal_zones(self, heal_zones: list[HealZone]):
         heal_zone, heal_zone_dist = get_closest_heal_zone(heal_zones, self.position)
@@ -50,21 +51,23 @@ class Individual:
         # TODO: Calculate this in `get_closest_rad_zone`.
         rad_zone_disp = (rad_zone.position[0] - self.position[0], rad_zone.position[1] - self.position[1])
         rad_zone_dir = normalize_vector(rad_zone_disp)
+        rad_zone_move_dir = normalize_vector(rad_zone.direction)
 
         if rad_zone_dist < rad_zone.radius:
             self.times_healed -= 2
 
-        return (rad_zone_dir, rad_zone_dist)
+        return (rad_zone_dir, rad_zone_dist, rad_zone_move_dir)
 
     def update(self, heal_zones: list[HealZone], rad_zones: list[RadZone]) -> IndividualUpdateContext:
         (heal_zone_dir, heal_zone_dist) = self.handle_heal_zones(heal_zones)
-        (rad_zone_dir, rad_zone_dist) = self.handle_rad_zones(rad_zones)
+        (rad_zone_dir, rad_zone_dist, rad_zone_move_dir) = self.handle_rad_zones(rad_zones)
 
         context = IndividualUpdateContext(
             heal_zone_dir, 
             heal_zone_dist / MAX_LENGTH,
             rad_zone_dir,
             rad_zone_dist / MAX_LENGTH,
+            rad_zone_move_dir,
             self.position, 
             self.times_healed
         )
@@ -83,6 +86,7 @@ class Individual:
 
         heal_zone_dir_x, heal_zone_dir_y = context.heal_zone_dir
         rad_zone_dir_x, rad_zone_dir_y = context.rad_zone_dir
+        rad_zone_move_dir_x, rad_zone_move_dir_y = context.rad_zone_move_dir
 
         input_values = [
             prev_position_dir_x,
@@ -93,6 +97,8 @@ class Individual:
             context.rad_zone_dist,
             rad_zone_dir_x,
             rad_zone_dir_y,
+            rad_zone_move_dir_x,
+            rad_zone_move_dir_y
         ]
 
         if len(input_values) != INPUT_SIZE:
