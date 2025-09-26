@@ -3,7 +3,6 @@ from random import randint
 import numpy as np
 
 from config import GRID_SIZE, INPUT_SIZE, MAX_LENGTH
-from src.model.propagation import decide
 from src.simulation.heal_zones import HealZone, get_closest_heal_zone
 from src.simulation.rad_zones import RadZone, get_closest_rad_zone
 from src.model.main import Model, create_model
@@ -62,7 +61,7 @@ class Individual:
         (heal_zone_dir, heal_zone_dist) = self.handle_heal_zones(heal_zones)
         (rad_zone_dir, rad_zone_dist, rad_zone_move_dir) = self.handle_rad_zones(rad_zones)
 
-        context = IndividualUpdateContext(
+        return IndividualUpdateContext(
             heal_zone_dir, 
             heal_zone_dist / MAX_LENGTH,
             rad_zone_dir,
@@ -72,13 +71,6 @@ class Individual:
             self.times_healed
         )
 
-        decision = decide(self.model, np.array([self.calculate_input_values(context)]))
-
-        self.previous_position = self.position
-        self.position = (self.position[0] + decision[0], self.position[1] + decision[1])
-
-        context.next_position = self.position
-        return context
     
     def calculate_input_values(self, context: IndividualUpdateContext) -> list[float]:
         prev_position_dir_x = self.position[0] - self.previous_position[0]

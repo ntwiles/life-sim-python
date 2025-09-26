@@ -1,9 +1,10 @@
 import math
 import random
 
-import tensorflow as tf
+import numpy as np
 
-from config import LOAD_MODELS, NUM_INDIVS, SELECTION_RATE
+from config import GRID_SIZE, LOAD_MODELS, NUM_INDIVS, SELECTION_RATE
+from src.model.propagation import batch_decide
 from src.model.main import clone_model
 from src.simulation.rad_zones import RadZone, spawn_rad_zones
 from src.services.individuals import load_individuals
@@ -27,9 +28,28 @@ class Simulation:
         for rad_zone in self.rad_zones:
             rad_zone.update()
 
-        return list(map(lambda indiv: indiv.update(self.heal_zones, self.rad_zones), self.indivs))
+        contexts = []
+        all_inputs = []
 
+        for indiv in self.indivs:
+            context = indiv.update(self.heal_zones, self.rad_zones)
+            all_inputs.append(indiv.calculate_input_values(context))
+            contexts.append(context)
 
+        all_decisions = batch_decide([indiv.model for indiv in self.indivs], np.array(all_inputs))
+
+        for indiv, decision, context in zip(self.indivs, all_decisions, contexts):
+            indiv.previous_position = indiv.position
+            new_position = (indiv.position[0] + decision[0], indiv.position[1] + decision[1])
+
+            indiv.position = (
+                max(0, min(new_position[0], GRID_SIZE - 1)),
+                max(0, min(new_position[1], GRID_SIZE - 1))
+            )
+            
+            context.next_position = indiv.position 
+
+        return contexts
 
 def select_breeders(indivs: list[Individual]) -> list[Individual]:
     min_fitness = min(indiv.times_healed for indiv in indivs)
