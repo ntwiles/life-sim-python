@@ -7,6 +7,7 @@ from pyglet import shapes, text
 import tensorflow as tf
 
 from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, NUM_RAD_ZONES, SIMULATOR_STEPS, WINDOW_SCALE
+from src.fitness import calculate_theoretical_max_fitness
 from src.services.individuals import save_individuals
 from src.simulation.main import IndividualUpdateContext, Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
 
@@ -27,6 +28,9 @@ class Application:
     label: text.Label
 
     rendering_enabled: bool
+
+    # cached calculations
+    theoretical_max_fitness: float
     
     def __init__(self):
         self.window = pyglet.window.Window(GRID_SIZE * WINDOW_SCALE, GRID_SIZE * WINDOW_SCALE) # type: ignore
@@ -67,6 +71,8 @@ class Application:
         pyglet.clock.schedule_interval(self.update, 1/60.0)
         self.window.push_handlers(self)
 
+        self.theoretical_max_fitness = calculate_theoretical_max_fitness()
+
 
     def on_key_press(self, symbol, _modifiers):
         if symbol == pyglet.window.key.SPACE:
@@ -95,8 +101,7 @@ class Application:
 
             if self.indiv_updates is not None:
                 for i, update in enumerate(self.indiv_updates):
-                    # 280 denominator is based on theoretical average maximum times healed.
-                    percent_healed = min(abs(update.times_healed) / 280, 1)
+                    percent_healed = min(abs(update.times_healed) / self.theoretical_max_fitness, 1)
 
                     r = 0
                     g = 0
@@ -134,6 +139,7 @@ class Application:
             self.steps_remaining -= 1
             self.avg_times_healed = sum(map(lambda indiv: indiv.times_healed, self.sim.indivs)) / len(self.sim.indivs)
 
+            # TODO: Optimize this to speed up the simulation loop. Saving models can be done async, but this isn't the biggest bottleneck.
             if self.steps_remaining == 0:
                 for indiv in self.sim.indivs:
                     indiv.model.num_simulations += 1
@@ -153,7 +159,8 @@ class Application:
                 self.last_run_time = time.time() - self.time_started
                 self.time_started = time.time()
 
-            if self.moving_avg_times_healed > 270:
+            # We've hit 80% of the theoretical max fitness, so we can stop now.
+            if self.moving_avg_times_healed > self.theoretical_max_fitness * .8:
                 pyglet.app.exit()
 
 
