@@ -20,7 +20,8 @@ class Application:
         self.rendering_enabled = True
                 
         pyglet.clock.schedule_interval(self.update, 1/60.0)
-        self.window.push_handlers(self)
+        self.window.on_draw = self.on_draw
+        self.window.on_key_press = self.on_key_press
 
 
     def on_key_press(self, symbol, _modifiers):
