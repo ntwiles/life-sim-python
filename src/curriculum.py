@@ -2,20 +2,15 @@ from collections import deque
 import math
 import time
 
-import tensorflow as tf
 from pyglet import text, shapes
-
 
 from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, NUM_RAD_ZONES, SIMULATOR_STEPS, WINDOW_SCALE
 from src.fitness import calculate_theoretical_max_fitness
 from src.services.individuals import save_individuals
-from src.simulation.individual import IndividualUpdateContext
 from src.simulation.main import Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
 
 class Curriculum:
-    sim: Simulation
-    steps_remaining: int
-    indiv_updates: list[IndividualUpdateContext] | None
+    sim: Simulation | None
 
     avg_times_healed: float
     last_k_avg_times_healed: deque[float]
@@ -33,15 +28,13 @@ class Curriculum:
     indiv_ids: list[shapes.Circle]
 
     def __init__(self):
-        self.sim = Simulation(spawn_initial_generation())
-        self.steps_remaining = SIMULATOR_STEPS
-        self.indiv_updates = None
-
         self.avg_times_healed = 0
         self.moving_avg_times_healed = 0
         self.last_k_avg_times_healed = deque(maxlen=20)
 
         self.theoretical_max_fitness = calculate_theoretical_max_fitness()
+
+        self.sim = None
 
         self.indiv_ids = []
         for _ in range(NUM_INDIVS):
@@ -70,39 +63,38 @@ class Curriculum:
         self.last_run_time = 0.0
         self.time_started = time.time()
 
-    # TODO: Get a better understanding of this `with` usage here. Do we actually need the GPU for all this logic?
-    def update(self) -> bool:
-        with tf.device('/GPU:0'):
-            self.indiv_updates = self.sim.update(self.steps_remaining / SIMULATOR_STEPS)
-            self.steps_remaining -= 1
-            self.avg_times_healed = sum(map(lambda indiv: indiv.times_healed, self.sim.indivs)) / len(self.sim.indivs)
+    def run(self):
+        generation = spawn_initial_generation()
+        running_curriculum = True
 
-            # TODO: Optimize this to speed up the simulation loop. Saving models can be done async, but this isn't the biggest bottleneck.
-            if self.steps_remaining == 0:
-                for indiv in self.sim.indivs:
-                    indiv.model.num_simulations += 1
+        while running_curriculum:
+            self.sim = Simulation(generation)
+            self.sim.run(SIMULATOR_STEPS)
 
-                save_individuals(self.sim.indivs)
+            self.avg_times_healed = sum(map(lambda indiv: indiv.times_healed, generation)) / len(generation)
 
-                breeders = select_breeders(self.sim.indivs)
-                next_generation = spawn_next_generation(breeders)
-                
-                self.sim = Simulation(next_generation)
+            for indiv in generation:
+                indiv.model.num_simulations += 1
 
-                self.steps_remaining = SIMULATOR_STEPS
+            save_individuals(generation)
 
-                # TODO: Maybe this should be done in the Simulation class.
-                self.last_k_avg_times_healed.append(self.avg_times_healed)
-                self.moving_avg_times_healed = sum(self.last_k_avg_times_healed) / len(self.last_k_avg_times_healed)
-                self.last_run_time = time.time() - self.time_started
-                self.time_started = time.time()
+            breeders = select_breeders(generation)
+            generation = spawn_next_generation(breeders)
+            
+            # TODO: Maybe this should be done in the Simulation class.
+            self.last_k_avg_times_healed.append(self.avg_times_healed)
+            self.moving_avg_times_healed = sum(self.last_k_avg_times_healed) / len(self.last_k_avg_times_healed)
+            self.last_run_time = time.time() - self.time_started
+            self.time_started = time.time()
 
             # We've hit 80% of the theoretical max fitness, so we can stop now.
             if self.moving_avg_times_healed > self.theoretical_max_fitness * .8:
-                return False
-            return True
-        
+                running_curriculum = False
+
     def draw(self):
+        if self.sim is None:
+            return
+        
         if self.sim.heal_zones is not None:
             for heal_zone in self.sim.heal_zones:
                     # TODO: Why are we just grabbing the first circle instance? If this works, maybe we should only 
@@ -119,8 +111,8 @@ class Curriculum:
                 circle.position = rad_zone.position[0] * WINDOW_SCALE, rad_zone.position[1] * WINDOW_SCALE
                 circle.draw()
 
-        if self.indiv_updates is not None:
-            for i, update in enumerate(self.indiv_updates):
+        if self.sim.indiv_updates is not None:
+            for i, update in enumerate(self.sim.indiv_updates):
                 percent_healed = min(abs(update.times_healed) / self.theoretical_max_fitness, 1)
 
                 r = 0
@@ -144,7 +136,7 @@ class Curriculum:
             analytics = [
                 f"Avg. fitness: { round(self.avg_times_healed, 2) }",
                 f"Moving avg. fitness: { round(self.moving_avg_times_healed, 2) }",
-                f"Steps remaining: {self.steps_remaining}",
+                f"Steps remaining: {self.sim.steps_remaining}",
                 f"Last run time: { round(self.last_run_time, 2) }s",
                 f"Num simulations: { self.sim.indivs[0].model.num_simulations }"
             ]

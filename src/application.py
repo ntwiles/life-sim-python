@@ -1,4 +1,5 @@
 
+import threading
 import pyglet
 from pyglet import shapes, text
 
@@ -19,7 +20,6 @@ class Application:
 
         self.rendering_enabled = True
                 
-        pyglet.clock.schedule_interval(self.update, 1/60.0)
         self.window.on_draw = self.on_draw
         self.window.on_key_press = self.on_key_press
 
@@ -36,12 +36,12 @@ class Application:
             self.curriculum.draw()
     
 
-    def update(self, _dt: float):
-        if not self.curriculum.update():
-            pyglet.app.exit()
-            return
-
-
     def run(self):
         self.curriculum = Curriculum()
+
+        thread = threading.Thread(target=self.curriculum.run)
+        thread.daemon = True
+        thread.start()
+
         pyglet.app.run()
+
