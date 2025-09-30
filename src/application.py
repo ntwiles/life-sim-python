@@ -5,6 +5,7 @@ import pyglet
 from pyglet import shapes, text
 
 from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, NUM_RAD_ZONES, WINDOW_SCALE
+from src.drawing_data import DrawingData
 from src.curriculum import Curriculum
 
 class Application:
@@ -18,6 +19,8 @@ class Application:
     rad_zone_ids: list[shapes.Circle]
     indiv_ids: list[shapes.Circle]
     label: text.Label
+
+    latest_drawing_data: DrawingData | None
 
 
     def __init__(self):
@@ -52,6 +55,8 @@ class Application:
         self.stats_document.set_style(0, len(self.stats_document.text), style)
         self.layout = text.layout.TextLayout(self.stats_document, GRID_SIZE * WINDOW_SCALE, GRID_SIZE * WINDOW_SCALE, multiline=True)
 
+        self.latest_drawing_data = None
+
 
     def on_key_press(self, symbol, _modifiers):
         if symbol == pyglet.window.key.SPACE:
@@ -60,11 +65,12 @@ class Application:
 
     def on_draw(self) -> None:
         self.window.clear()
-        sim = self.curriculum.sim
 
-        if self.rendering_enabled and sim is not None:
-            if sim.heal_zones is not None:
-                for heal_zone in sim.heal_zones:
+        if self.rendering_enabled and self.latest_drawing_data is not None:
+            draw = self.latest_drawing_data
+
+            if draw.heal_zones is not None:
+                for heal_zone in draw.heal_zones:
                         # TODO: Why are we just grabbing the first circle instance? If this works, maybe we should only 
                         # make a single instance altogether and use it as a brush. Same goes for rad_zones.
                         circle = self.heal_zone_ids[0]
@@ -72,15 +78,15 @@ class Application:
                         circle.position = heal_zone.position[0] * WINDOW_SCALE, heal_zone.position[1] * WINDOW_SCALE
                         circle.draw()
 
-            if sim.rad_zones is not None:
-                for rad_zone in sim.rad_zones:
+            if draw.rad_zones is not None:
+                for rad_zone in draw.rad_zones:
                     circle = self.rad_zone_ids[0]
                     circle.radius = rad_zone.radius * WINDOW_SCALE
                     circle.position = rad_zone.position[0] * WINDOW_SCALE, rad_zone.position[1] * WINDOW_SCALE
                     circle.draw()
 
-            if sim.indiv_updates is not None:
-                for i, update in enumerate(sim.indiv_updates):
+            if draw.indiv_updates is not None:
+                for i, update in enumerate(draw.indiv_updates):
                     percent_healed = min(abs(update.times_healed) / self.curriculum.theoretical_max_fitness, 1)
 
                     r = 0
@@ -104,9 +110,9 @@ class Application:
                 analytics = [
                     f"Avg. fitness: { round(self.curriculum.avg_times_healed, 2) }",
                     f"Moving avg. fitness: { round(self.curriculum.moving_avg_times_healed, 2) }",
-                    f"Steps remaining: {sim.steps_remaining}",
+                    # f"Steps remaining: {draw.steps_remaining}",
                     f"Last run time: { round(self.curriculum.last_run_time, 2) }s",
-                    f"Num simulations: { sim.indivs[0].model.num_simulations }"
+                    # f"Num simulations: { draw.indiv_updates[0].model.num_simulations }"
                 ]
 
                 self.stats_document.text = '\n'.join(analytics)
@@ -117,7 +123,10 @@ class Application:
     def run(self):
         self.curriculum = Curriculum()
 
-        thread = threading.Thread(target=self.curriculum.run)
+        def handle_sim_updates(drawing_data: DrawingData):
+            self.latest_drawing_data = drawing_data
+
+        thread = threading.Thread(target=self.curriculum.run, args=(handle_sim_updates,))
         thread.daemon = True
         thread.start()
 

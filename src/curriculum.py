@@ -1,11 +1,11 @@
 from collections import deque
+from collections.abc import Callable
 import math
 import random
 import time
 
-from pyglet import text, shapes
-
 from config import ENABLE_GATING, LOAD_MODELS, NUM_INDIVS, SELECTION_RATE, SIMULATOR_STEPS
+from src.drawing_data import DrawingData
 from src.model.main import clone_and_mutate_model
 from src.simulation.individual import Individual
 from src.fitness import calculate_theoretical_max_fitness
@@ -37,12 +37,12 @@ class Curriculum:
         self.time_started = time.time()
 
 
-    def run(self):
+    def run(self, on_sim_update: Callable[[DrawingData], None] | None = None):
         generation = spawn_initial_generation()
         running_curriculum = True
 
         while running_curriculum:
-            self.sim = Simulation(generation)
+            self.sim = Simulation(generation, on_update=on_sim_update)
             self.sim.run(SIMULATOR_STEPS)
 
             self.avg_times_healed = sum(map(lambda indiv: indiv.times_healed, generation)) / len(generation)
@@ -64,7 +64,7 @@ class Curriculum:
             # We've hit 80% of the theoretical max fitness, so we can stop now.
             if self.moving_avg_times_healed > self.theoretical_max_fitness * .8:
                 running_curriculum = False
-                
+
 
 def select_breeders(indivs: list[Individual]) -> list[Individual]:
     min_fitness = min(indiv.times_healed for indiv in indivs)

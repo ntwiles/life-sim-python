@@ -1,6 +1,8 @@
+from typing import Callable
 import numpy as np
 import tensorflow as tf
 
+from src.drawing_data import DrawingData
 from config import GRID_SIZE
 from src.model.propagation import batch_decide
 from src.simulation.rad_zones import RadZone, spawn_rad_zones
@@ -16,12 +18,13 @@ class Simulation:
     steps_remaining: int
 
 
-    def __init__(self, indivs: list[Individual]):
+    def __init__(self, indivs: list[Individual], on_update: Callable[[DrawingData], None] | None = None):
         self.indivs = indivs
         self.heal_zones = spawn_heal_zones()
         self.rad_zones = spawn_rad_zones()
         self.indiv_updates = None
         self.steps_remaining = 0
+        self.on_update = on_update
        
 
     def run(self, num_steps: int):
@@ -58,5 +61,7 @@ class Simulation:
 
                 context.next_position = indiv.position 
 
-            self.indiv_updates = contexts
+            if self.on_update is not None:
+                drawing_data = DrawingData(indiv_updates=contexts, heal_zones=self.heal_zones, rad_zones=self.rad_zones)
+                self.on_update(drawing_data)
 
