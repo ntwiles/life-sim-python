@@ -68,6 +68,7 @@ class Curriculum:
         running_curriculum = True
 
         while running_curriculum:
+            print(len(generation))
             self.sim = Simulation(generation)
             self.sim.run(SIMULATOR_STEPS)
 
