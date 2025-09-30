@@ -1,16 +1,16 @@
 from collections import deque
 import math
+import random
 import time
 
 from pyglet import text, shapes
-import tensorflow as tf
 
-from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, NUM_RAD_ZONES, SIMULATOR_STEPS, WINDOW_SCALE
-from src.model.main import clone_model
+from config import ENABLE_GATING, LOAD_MODELS, NUM_INDIVS, SELECTION_RATE, SIMULATOR_STEPS
+from src.model.main import clone_and_mutate_model
 from src.simulation.individual import Individual
 from src.fitness import calculate_theoretical_max_fitness
-from src.services.individuals import save_individuals
-from src.simulation.main import Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
+from src.services.individuals import load_individuals, save_individuals
+from src.simulation.main import Simulation
 
 class Curriculum:
     sim: Simulation | None
@@ -23,12 +23,6 @@ class Curriculum:
     time_started: float
     last_run_time: float
 
-    stats_document: text.document.UnformattedDocument
-
-    layout: text.layout.TextLayout
-    heal_zone_ids: list[shapes.Circle]
-    rad_zone_ids: list[shapes.Circle]
-    indiv_ids: list[shapes.Circle]
 
     def __init__(self):
         self.avg_times_healed = 0
@@ -39,32 +33,9 @@ class Curriculum:
 
         self.sim = None
 
-        self.indiv_ids = []
-        for _ in range(NUM_INDIVS):
-            self.indiv_ids.append(shapes.Circle(0,0, WINDOW_SCALE))
-
-        self.heal_zone_ids = []
-        for _ in range(NUM_HEAL_ZONES):
-            self.heal_zone_ids.append(shapes.Circle(0, 0, WINDOW_SCALE, color=(110, 255, 100, 60), segments=32))
-
-        self.rad_zone_ids = []
-        for _ in range(NUM_RAD_ZONES):
-            self.rad_zone_ids.append(shapes.Circle(0, 0, WINDOW_SCALE, color=(255, 100, 100, 60), segments=32))
-            
-        style = dict(
-            margin_left="10px",
-            margin_top="10px",
-            font_name='Times New Roman',
-            font_size=12,
-            color=(255, 255, 255, 255)
-        )
-
-        self.stats_document = text.decode_text('')
-        self.stats_document.set_style(0, len(self.stats_document.text), style)
-        self.layout = text.layout.TextLayout(self.stats_document, GRID_SIZE * WINDOW_SCALE, GRID_SIZE * WINDOW_SCALE, multiline=True)
-
         self.last_run_time = 0.0
         self.time_started = time.time()
+
 
     def run(self):
         generation = spawn_initial_generation()
@@ -93,57 +64,35 @@ class Curriculum:
             # We've hit 80% of the theoretical max fitness, so we can stop now.
             if self.moving_avg_times_healed > self.theoretical_max_fitness * .8:
                 running_curriculum = False
-
-    def draw(self):
-        if self.sim is None:
-            return
-        
-        if self.sim.heal_zones is not None:
-            for heal_zone in self.sim.heal_zones:
-                    # TODO: Why are we just grabbing the first circle instance? If this works, maybe we should only 
-                    # make a single instance altogether and use it as a brush. Same goes for rad_zones.
-                    circle = self.heal_zone_ids[0]
-                    circle.radius = heal_zone.radius * WINDOW_SCALE
-                    circle.position = heal_zone.position[0] * WINDOW_SCALE, heal_zone.position[1] * WINDOW_SCALE
-                    circle.draw()
-
-        if self.sim.rad_zones is not None:
-            for rad_zone in self.sim.rad_zones:
-                circle = self.rad_zone_ids[0]
-                circle.radius = rad_zone.radius * WINDOW_SCALE
-                circle.position = rad_zone.position[0] * WINDOW_SCALE, rad_zone.position[1] * WINDOW_SCALE
-                circle.draw()
-
-        if self.sim.indiv_updates is not None:
-            for i, update in enumerate(self.sim.indiv_updates):
-                percent_healed = min(abs(update.times_healed) / self.theoretical_max_fitness, 1)
-
-                r = 0
-                g = 0
-                b = 0
                 
-                if (update.times_healed > 0): 
-                    r = 255 - math.floor(percent_healed * 255)
-                    g = 255
-                    b = 255 - math.floor(percent_healed * 255)
-                else: 
-                    r = 255
-                    g = 255 - math.floor(percent_healed * 255)
-                    b = 255 - math.floor(percent_healed * 255)
 
-                circle = self.indiv_ids[i]
-                circle.position = update.next_position[0] * WINDOW_SCALE, update.next_position[1] * WINDOW_SCALE
-                circle.color = (r, g, b, 255)
-                circle.draw()
+def select_breeders(indivs: list[Individual]) -> list[Individual]:
+    min_fitness = min(indiv.times_healed for indiv in indivs)
 
-            analytics = [
-                f"Avg. fitness: { round(self.avg_times_healed, 2) }",
-                f"Moving avg. fitness: { round(self.moving_avg_times_healed, 2) }",
-                f"Steps remaining: {self.sim.steps_remaining}",
-                f"Last run time: { round(self.last_run_time, 2) }s",
-                f"Num simulations: { self.sim.indivs[0].model.num_simulations }"
-            ]
+    baseline = abs(min_fitness) + 1
 
-            self.stats_document.text = '\n'.join(analytics)
+    adjusted_fitness = [indiv.times_healed + baseline for indiv in indivs]
+    total_fitness = sum(adjusted_fitness)
 
-        self.layout.draw()
+    probabilities = [fitness / total_fitness for fitness in adjusted_fitness]
+    num_breeders = math.floor(len(indivs) * SELECTION_RATE)
+    
+    return random.choices(indivs, weights=probabilities, k=num_breeders)
+
+
+def spawn_initial_generation() -> list[Individual]:
+    if LOAD_MODELS:
+        return load_individuals()
+    else:
+        return [Individual() for _ in range(NUM_INDIVS)]
+
+
+def spawn_next_generation(breeders: list[Individual]) -> list[Individual]:
+    next_generation = []
+
+    for parent in breeders:
+        for _ in range(int(round(1 / SELECTION_RATE))):
+            child = Individual(clone_and_mutate_model(parent.model, ENABLE_GATING))
+            next_generation.append(child)
+
+    return next_generation

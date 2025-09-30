@@ -1,14 +1,9 @@
-import math
-import random
-
 import numpy as np
 import tensorflow as tf
 
-from config import ENABLE_GATING, GRID_SIZE, LOAD_MODELS, NUM_INDIVS, SELECTION_RATE
+from config import GRID_SIZE
 from src.model.propagation import batch_decide
-from src.model.main import clone_and_mutate_model
 from src.simulation.rad_zones import RadZone, spawn_rad_zones
-from src.services.individuals import load_individuals
 from src.simulation.heal_zones import HealZone, spawn_heal_zones
 from src.simulation.individual import Individual, IndividualUpdateContext
 
@@ -20,12 +15,14 @@ class Simulation:
     indiv_updates: list[IndividualUpdateContext] | None
     steps_remaining: int
 
+
     def __init__(self, indivs: list[Individual]):
         self.indivs = indivs
         self.heal_zones = spawn_heal_zones()
         self.rad_zones = spawn_rad_zones()
         self.indiv_updates = None
         self.steps_remaining = 0
+       
 
     def run(self, num_steps: int):
         self.steps_remaining = num_steps
@@ -62,35 +59,4 @@ class Simulation:
                 context.next_position = indiv.position 
 
             self.indiv_updates = contexts
-
-def select_breeders(indivs: list[Individual]) -> list[Individual]:
-    min_fitness = min(indiv.times_healed for indiv in indivs)
-
-    baseline = abs(min_fitness) + 1
-
-    adjusted_fitness = [indiv.times_healed + baseline for indiv in indivs]
-    total_fitness = sum(adjusted_fitness)
-
-    probabilities = [fitness / total_fitness for fitness in adjusted_fitness]
-    num_breeders = math.floor(len(indivs) * SELECTION_RATE)
-    
-    return random.choices(indivs, weights=probabilities, k=num_breeders)
-
-def spawn_initial_generation() -> list[Individual]:
-    if LOAD_MODELS:
-        return load_individuals()
-    else:
-        return [Individual() for _ in range(NUM_INDIVS)]
-
-
-def spawn_next_generation(breeders: list[Individual]) -> list[Individual]:
-    next_generation = []
-
-    for parent in breeders:
-        for _ in range(int(round(1 / SELECTION_RATE))):
-            child = Individual(clone_and_mutate_model(parent.model, ENABLE_GATING))
-            next_generation.append(child)
-
-    return next_generation
-
 
