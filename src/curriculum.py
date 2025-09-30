@@ -3,8 +3,11 @@ import math
 import time
 
 from pyglet import text, shapes
+import tensorflow as tf
 
 from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, NUM_RAD_ZONES, SIMULATOR_STEPS, WINDOW_SCALE
+from src.model.main import clone_model
+from src.simulation.individual import Individual
 from src.fitness import calculate_theoretical_max_fitness
 from src.services.individuals import save_individuals
 from src.simulation.main import Simulation, select_breeders, spawn_initial_generation, spawn_next_generation
@@ -68,7 +71,6 @@ class Curriculum:
         running_curriculum = True
 
         while running_curriculum:
-            print(len(generation))
             self.sim = Simulation(generation)
             self.sim.run(SIMULATOR_STEPS)
 

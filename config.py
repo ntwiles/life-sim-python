@@ -17,4 +17,6 @@ SELECTION_RATE = 1 / 3
 LOAD_MODELS = True
 GATE_DISABLE_RATE = 0.003
 
+ENABLE_GATING = False
+
 # NOTE: NUM_INDIVS must be evenly divisible by SELECTION_RATE, and the inverse of SELECTION_RATE must be an integer.
