@@ -48,7 +48,7 @@ class Curriculum:
             self.avg_times_healed = sum(map(lambda indiv: indiv.times_healed, generation)) / len(generation)
 
             for indiv in generation:
-                indiv.model.num_simulations += 1
+                indiv.model.num_generations += 1
 
             save_individuals(generation)
 

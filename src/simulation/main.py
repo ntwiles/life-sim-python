@@ -62,6 +62,13 @@ class Simulation:
                 context.next_position = indiv.position 
 
             if self.on_update is not None:
-                drawing_data = DrawingData(indiv_updates=contexts, heal_zones=self.heal_zones, rad_zones=self.rad_zones)
+                drawing_data = DrawingData(
+                    indiv_updates=contexts, 
+                    heal_zones=self.heal_zones, 
+                    rad_zones=self.rad_zones, 
+                    steps_remaining=self.steps_remaining, 
+                    model_num_generations=self.indivs[0].model.num_generations
+                )
+
                 self.on_update(drawing_data)
 

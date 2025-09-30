@@ -11,3 +11,5 @@ class DrawingData:
     indiv_updates: list[IndividualUpdateContext]
     heal_zones: list[HealZone]
     rad_zones: list[RadZone]
+    steps_remaining: int
+    model_num_generations: int

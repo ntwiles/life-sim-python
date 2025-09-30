@@ -110,9 +110,9 @@ class Application:
                 analytics = [
                     f"Avg. fitness: { round(self.curriculum.avg_times_healed, 2) }",
                     f"Moving avg. fitness: { round(self.curriculum.moving_avg_times_healed, 2) }",
-                    # f"Steps remaining: {draw.steps_remaining}",
+                    f"Steps remaining: {draw.steps_remaining}",
                     f"Last run time: { round(self.curriculum.last_run_time, 2) }s",
-                    # f"Num simulations: { draw.indiv_updates[0].model.num_simulations }"
+                    f"Model generations: { draw.model_num_generations }"
                 ]
 
                 self.stats_document.text = '\n'.join(analytics)
