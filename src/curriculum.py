@@ -5,7 +5,7 @@ import random
 import time
 
 from config import ENABLE_GATING, LOAD_MODELS, NUM_INDIVS, SELECTION_RATE, SIMULATOR_STEPS
-from src.drawing_data import DrawingData
+from src.drawing_data import SimulationDrawingData, CurriculumDrawingData
 from src.model.main import clone_and_mutate_model
 from src.simulation.individual import Individual
 from src.fitness import calculate_theoretical_max_fitness
@@ -20,10 +20,6 @@ class Curriculum:
     moving_avg_times_healed: float
     theoretical_max_fitness: float
 
-    time_started: float
-    last_run_time: float
-
-
     def __init__(self):
         self.avg_times_healed = 0
         self.moving_avg_times_healed = 0
@@ -33,17 +29,19 @@ class Curriculum:
 
         self.sim = None
 
-        self.last_run_time = 0.0
-        self.time_started = time.time()
-
-
-    def run(self, on_sim_update: Callable[[DrawingData], None] | None = None):
+    def run(self, on_sim_update: Callable[[SimulationDrawingData], None] | None = None, on_curriculum_update: Callable[[CurriculumDrawingData], None] | None = None):
         generation = spawn_initial_generation()
         running_curriculum = True
 
         while running_curriculum:
+            sim_time_started = time.time()
+
             self.sim = Simulation(generation, on_update=on_sim_update)
             self.sim.run(SIMULATOR_STEPS)
+
+            sim_duration = time.time() - sim_time_started
+
+            training_time_started = time.time() 
 
             self.avg_times_healed = sum(map(lambda indiv: indiv.times_healed, generation)) / len(generation)
 
@@ -58,8 +56,14 @@ class Curriculum:
             # TODO: Maybe this should be done in the Simulation class.
             self.last_k_avg_times_healed.append(self.avg_times_healed)
             self.moving_avg_times_healed = sum(self.last_k_avg_times_healed) / len(self.last_k_avg_times_healed)
-            self.last_run_time = time.time() - self.time_started
-            self.time_started = time.time()
+
+            training_duration = time.time() - training_time_started
+
+            if on_curriculum_update is not None:
+                on_curriculum_update(CurriculumDrawingData(
+                    last_sim_duration=sim_duration,
+                    last_training_duration=training_duration
+                ))
 
             # We've hit 80% of the theoretical max fitness, so we can stop now.
             if self.moving_avg_times_healed > self.theoretical_max_fitness * .8:

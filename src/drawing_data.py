@@ -7,9 +7,14 @@ from src.simulation.rad_zones import RadZone
 
 
 @dataclass
-class DrawingData:
+class SimulationDrawingData:
     indiv_updates: list[IndividualUpdateContext]
     heal_zones: list[HealZone]
     rad_zones: list[RadZone]
     steps_remaining: int
     model_num_generations: int
+
+@dataclass
+class CurriculumDrawingData:
+    last_sim_duration: float
+    last_training_duration: float

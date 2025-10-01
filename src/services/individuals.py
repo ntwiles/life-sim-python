@@ -10,7 +10,7 @@ def save_individuals(indivs: list[Individual]):
 
         with open(f".models/{i}.json", 'w') as file:
             data = {
-                'num_simulations': indiv.model.num_generations
+                'num_generations': indiv.model.num_generations
             }
 
             json.dump(data, file)
@@ -27,7 +27,7 @@ def load_individual(id: int) -> Individual:
 
         with open(f".models/{id}.json", 'r') as file:
             data = json.load(file)
-            indiv.model.num_generations = data['num_simulations']
+            indiv.model.num_generations = data['num_generations']
 
     except Exception as e:
         indiv.model.num_generations = 0

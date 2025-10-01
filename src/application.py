@@ -5,7 +5,7 @@ import pyglet
 from pyglet import shapes, text
 
 from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, NUM_RAD_ZONES, WINDOW_SCALE
-from src.drawing_data import DrawingData
+from src.drawing_data import SimulationDrawingData, CurriculumDrawingData
 from src.curriculum import Curriculum
 
 class Application:
@@ -20,7 +20,8 @@ class Application:
     indiv_ids: list[shapes.Circle]
     label: text.Label
 
-    latest_drawing_data: DrawingData | None
+    latest_sim_data: SimulationDrawingData | None
+    latest_curriculum_data: CurriculumDrawingData | None
 
 
     def __init__(self):
@@ -55,7 +56,8 @@ class Application:
         self.stats_document.set_style(0, len(self.stats_document.text), style)
         self.layout = text.layout.TextLayout(self.stats_document, GRID_SIZE * WINDOW_SCALE, GRID_SIZE * WINDOW_SCALE, multiline=True)
 
-        self.latest_drawing_data = None
+        self.latest_sim_data = None
+        self.latest_curriculum_data = None
 
 
     def on_key_press(self, symbol, _modifiers):
@@ -66,67 +68,76 @@ class Application:
     def on_draw(self) -> None:
         self.window.clear()
 
-        if self.rendering_enabled and self.latest_drawing_data is not None:
-            draw = self.latest_drawing_data
+        if not self.rendering_enabled:
+            return
+        
+        analytics = []
+        
+        if self.latest_sim_data is not None:
+            sim = self.latest_sim_data
 
-            if draw.heal_zones is not None:
-                for heal_zone in draw.heal_zones:
-                        # TODO: Why are we just grabbing the first circle instance? If this works, maybe we should only 
-                        # make a single instance altogether and use it as a brush. Same goes for rad_zones.
-                        circle = self.heal_zone_ids[0]
-                        circle.radius = heal_zone.radius * WINDOW_SCALE
-                        circle.position = heal_zone.position[0] * WINDOW_SCALE, heal_zone.position[1] * WINDOW_SCALE
-                        circle.draw()
-
-            if draw.rad_zones is not None:
-                for rad_zone in draw.rad_zones:
-                    circle = self.rad_zone_ids[0]
-                    circle.radius = rad_zone.radius * WINDOW_SCALE
-                    circle.position = rad_zone.position[0] * WINDOW_SCALE, rad_zone.position[1] * WINDOW_SCALE
+            for heal_zone in sim.heal_zones:
+                    # TODO: Why are we just grabbing the first circle instance? If this works, maybe we should only 
+                    # make a single instance altogether and use it as a brush. Same goes for rad_zones.
+                    circle = self.heal_zone_ids[0]
+                    circle.radius = heal_zone.radius * WINDOW_SCALE
+                    circle.position = heal_zone.position[0] * WINDOW_SCALE, heal_zone.position[1] * WINDOW_SCALE
                     circle.draw()
 
-            if draw.indiv_updates is not None:
-                for i, update in enumerate(draw.indiv_updates):
-                    percent_healed = min(abs(update.times_healed) / self.curriculum.theoretical_max_fitness, 1)
+            for rad_zone in sim.rad_zones:
+                circle = self.rad_zone_ids[0]
+                circle.radius = rad_zone.radius * WINDOW_SCALE
+                circle.position = rad_zone.position[0] * WINDOW_SCALE, rad_zone.position[1] * WINDOW_SCALE
+                circle.draw()
 
-                    r = 0
-                    g = 0
-                    b = 0
-                    
-                    if (update.times_healed > 0): 
-                        r = 255 - math.floor(percent_healed * 255)
-                        g = 255
-                        b = 255 - math.floor(percent_healed * 255)
-                    else: 
-                        r = 255
-                        g = 255 - math.floor(percent_healed * 255)
-                        b = 255 - math.floor(percent_healed * 255)
+            for i, update in enumerate(sim.indiv_updates):
+                percent_healed = min(abs(update.times_healed) / self.curriculum.theoretical_max_fitness, 1)
 
-                    circle = self.indiv_ids[i]
-                    circle.position = update.next_position[0] * WINDOW_SCALE, update.next_position[1] * WINDOW_SCALE
-                    circle.color = (r, g, b, 255)
-                    circle.draw()
+                r = 0
+                g = 0
+                b = 0
+                
+                if (update.times_healed > 0): 
+                    r = 255 - math.floor(percent_healed * 255)
+                    g = 255
+                    b = 255 - math.floor(percent_healed * 255)
+                else: 
+                    r = 255
+                    g = 255 - math.floor(percent_healed * 255)
+                    b = 255 - math.floor(percent_healed * 255)
 
-                analytics = [
-                    f"Avg. fitness: { round(self.curriculum.avg_times_healed, 2) }",
-                    f"Moving avg. fitness: { round(self.curriculum.moving_avg_times_healed, 2) }",
-                    f"Steps remaining: {draw.steps_remaining}",
-                    f"Last run time: { round(self.curriculum.last_run_time, 2) }s",
-                    f"Model generations: { draw.model_num_generations }"
-                ]
+                circle = self.indiv_ids[i]
+                circle.position = update.next_position[0] * WINDOW_SCALE, update.next_position[1] * WINDOW_SCALE
+                circle.color = (r, g, b, 255)
+                circle.draw()
 
-                self.stats_document.text = '\n'.join(analytics)
+            analytics = [
+                f"Avg. fitness: { round(self.curriculum.avg_times_healed, 2) }",
+                f"Moving avg. fitness: { round(self.curriculum.moving_avg_times_healed, 2) }",
+                f"Steps remaining: {sim.steps_remaining}",
+                f"Model generations: { sim.model_num_generations }"
+            ]
 
-            self.layout.draw()
+        if self.latest_curriculum_data is not None: 
+            curriculum = self.latest_curriculum_data
+
+            analytics.append(f"Last sim duration: { round(curriculum.last_sim_duration, 2) }s")
+            analytics.append(f"Last training duration: { round(curriculum.last_training_duration, 2) }s")
+
+        self.stats_document.text = '\n'.join(analytics)
+        self.layout.draw()
     
 
     def run(self):
         self.curriculum = Curriculum()
 
-        def handle_sim_updates(drawing_data: DrawingData):
-            self.latest_drawing_data = drawing_data
+        def handle_sim_updates(data: SimulationDrawingData):
+            self.latest_sim_data = data
 
-        thread = threading.Thread(target=self.curriculum.run, args=(handle_sim_updates,))
+        def handle_curriculum_updates(data: CurriculumDrawingData):
+            self.latest_curriculum_data = data
+
+        thread = threading.Thread(target=self.curriculum.run, args=(handle_sim_updates, handle_curriculum_updates))
         thread.daemon = True
         thread.start()
 
