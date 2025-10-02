@@ -1,18 +1,15 @@
 
 
 import json
+
 from config import NUM_INDIVS
 from src.simulation.individual import Individual
 
 def save_individuals(indivs: list[Individual]):
     for i, indiv in enumerate(indivs):
         indiv.model.inner.save_weights(f".models/{i}.weights.h5")
-
         with open(f".models/{i}.json", 'w') as file:
-            data = {
-                'num_generations': indiv.model.num_generations
-            }
-
+            data = {'num_generations': indiv.model.num_generations}
             json.dump(data, file)
 
 def load_individuals() -> list[Individual]:

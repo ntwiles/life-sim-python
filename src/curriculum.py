@@ -3,6 +3,7 @@ from collections.abc import Callable
 import math
 import random
 import time
+import concurrent.futures
 
 from config import ENABLE_GATING, LOAD_MODELS, NUM_INDIVS, SELECTION_RATE, SIMULATOR_STEPS
 from src.drawing_data import SimulationDrawingData, CurriculumDrawingData
@@ -48,7 +49,8 @@ class Curriculum:
             for indiv in generation:
                 indiv.model.num_generations += 1
 
-            save_individuals(generation)
+            if indiv.model.num_generations % 100 == 0:
+                save_individuals(generation)
 
             breeders = select_breeders(generation)
             generation = spawn_next_generation(breeders)
@@ -67,6 +69,7 @@ class Curriculum:
 
             # We've hit 80% of the theoretical max fitness, so we can stop now.
             if self.moving_avg_times_healed > self.theoretical_max_fitness * .8:
+                save_individuals(generation)
                 running_curriculum = False
 
 
@@ -100,3 +103,4 @@ def spawn_next_generation(breeders: list[Individual]) -> list[Individual]:
             next_generation.append(child)
 
     return next_generation
+
