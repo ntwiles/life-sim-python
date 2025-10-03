@@ -5,11 +5,11 @@ import pyglet
 from pyglet import shapes, text
 
 from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, NUM_RAD_ZONES, WINDOW_SCALE
-from src.drawing_data import SimulationDrawingData, CurriculumDrawingData
-from src.curriculum import Curriculum
+from src.drawing_data import SimulationDrawingData, ProjectDrawingData
+from src.project import Project
 
 class Application:
-    curriculum: Curriculum
+    project: Project
 
     rendering_enabled: bool
 
@@ -21,7 +21,7 @@ class Application:
     label: text.Label
 
     latest_sim_data: SimulationDrawingData | None
-    latest_curriculum_data: CurriculumDrawingData | None
+    latest_project_data: ProjectDrawingData | None
 
 
     def __init__(self):
@@ -57,7 +57,7 @@ class Application:
         self.layout = text.layout.TextLayout(self.stats_document, GRID_SIZE * WINDOW_SCALE, GRID_SIZE * WINDOW_SCALE, multiline=True)
 
         self.latest_sim_data = None
-        self.latest_curriculum_data = None
+        self.latest_project_data = None
 
 
     def on_key_press(self, symbol, _modifiers):
@@ -91,7 +91,7 @@ class Application:
                 circle.draw()
 
             for i, update in enumerate(sim.indiv_updates):
-                percent_healed = min(abs(update.times_healed) / self.curriculum.theoretical_max_fitness, 1)
+                percent_healed = min(abs(update.times_healed) / self.project.theoretical_max_fitness, 1)
 
                 r = 0
                 g = 0
@@ -112,32 +112,32 @@ class Application:
                 circle.draw()
 
             analytics = [
-                f"Avg. fitness: { round(self.curriculum.avg_times_healed, 2) }",
-                f"Moving avg. fitness: { round(self.curriculum.moving_avg_times_healed, 2) }",
+                f"Avg. fitness: { round(self.project.avg_times_healed, 2) }",
+                f"Moving avg. fitness: { round(self.project.moving_avg_times_healed, 2) }",
                 f"Steps remaining: {sim.steps_remaining}",
                 f"Model generations: { sim.model_num_generations }"
             ]
 
-        if self.latest_curriculum_data is not None: 
-            curriculum = self.latest_curriculum_data
+        if self.latest_project_data is not None: 
+            project = self.latest_project_data
 
-            analytics.append(f"Last sim duration: { round(curriculum.last_sim_duration, 2) }s")
-            analytics.append(f"Last training duration: { round(curriculum.last_training_duration, 2) }s")
+            analytics.append(f"Last sim duration: { round(project.last_sim_duration, 2) }s")
+            analytics.append(f"Last training duration: { round(project.last_training_duration, 2) }s")
 
         self.stats_document.text = '\n'.join(analytics)
         self.layout.draw()
     
 
     def run(self):
-        self.curriculum = Curriculum()
+        self.project = Project()
 
         def handle_sim_updates(data: SimulationDrawingData):
             self.latest_sim_data = data
 
-        def handle_curriculum_updates(data: CurriculumDrawingData):
-            self.latest_curriculum_data = data
+        def handle_project_updates(data: ProjectDrawingData):
+            self.latest_project_data = data
 
-        thread = threading.Thread(target=self.curriculum.run, args=(handle_sim_updates, handle_curriculum_updates))
+        thread = threading.Thread(target=self.project.run, args=(handle_sim_updates, handle_project_updates))
         thread.daemon = True
         thread.start()
 

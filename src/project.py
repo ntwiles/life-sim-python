@@ -3,17 +3,16 @@ from collections.abc import Callable
 import math
 import random
 import time
-import concurrent.futures
 
 from config import ENABLE_GATING, LOAD_MODELS, NUM_INDIVS, SELECTION_RATE, SIMULATOR_STEPS
-from src.drawing_data import SimulationDrawingData, CurriculumDrawingData
+from src.drawing_data import SimulationDrawingData, ProjectDrawingData
 from src.model.main import clone_and_mutate_model
 from src.simulation.individual import Individual
 from src.fitness import calculate_theoretical_max_fitness
 from src.services.individuals import load_individuals, save_individuals
 from src.simulation.main import Simulation
 
-class Curriculum:
+class Project:
     sim: Simulation | None
 
     avg_times_healed: float
@@ -30,7 +29,7 @@ class Curriculum:
 
         self.sim = None
 
-    def run(self, on_sim_update: Callable[[SimulationDrawingData], None] | None = None, on_curriculum_update: Callable[[CurriculumDrawingData], None] | None = None):
+    def run(self, on_sim_update: Callable[[SimulationDrawingData], None] | None = None, on_project_update: Callable[[ProjectDrawingData], None] | None = None):
         generation = spawn_initial_generation()
         running_curriculum = True
 
@@ -61,8 +60,8 @@ class Curriculum:
 
             training_duration = time.time() - training_time_started
 
-            if on_curriculum_update is not None:
-                on_curriculum_update(CurriculumDrawingData(
+            if on_project_update is not None:
+                on_project_update(ProjectDrawingData(
                     last_sim_duration=sim_duration,
                     last_training_duration=training_duration
                 ))

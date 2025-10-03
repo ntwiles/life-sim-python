@@ -15,6 +15,6 @@ class SimulationDrawingData:
     model_num_generations: int
 
 @dataclass
-class CurriculumDrawingData:
+class ProjectDrawingData:
     last_sim_duration: float
     last_training_duration: float

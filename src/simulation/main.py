@@ -34,42 +34,40 @@ class Simulation:
             self.steps_remaining -= 1
 
 
-    # TODO: Get a better understanding of this `with` usage here. Do we actually need the GPU for all this logic?
     def update(self):
+        for rad_zone in self.rad_zones:
+            rad_zone.update()
+
+        contexts = []
+        all_inputs = []
+
+        for indiv in self.indivs:
+            context = indiv.update(self.heal_zones, self.rad_zones)
+            all_inputs.append(indiv.calculate_input_values(context))
+            contexts.append(context)
+
         with tf.device('/GPU:0'):
-            for rad_zone in self.rad_zones:
-                rad_zone.update()
-
-            contexts = []
-            all_inputs = []
-
-            for indiv in self.indivs:
-                context = indiv.update(self.heal_zones, self.rad_zones)
-                all_inputs.append(indiv.calculate_input_values(context))
-                contexts.append(context)
-
             all_decisions = batch_decide([indiv.model for indiv in self.indivs], np.array(all_inputs))
 
-            for indiv, decision, context in zip(self.indivs, all_decisions, contexts):
-                indiv.previous_position = indiv.position
-                new_position = (indiv.position[0] + decision[0], indiv.position[1] + decision[1])
+        for indiv, decision, context in zip(self.indivs, all_decisions, contexts):
+            indiv.previous_position = indiv.position
+            new_position = (indiv.position[0] + decision[0], indiv.position[1] + decision[1])
 
-                indiv.position = (
-                    max(0, min(new_position[0], GRID_SIZE - 1)),
-                    max(0, min(new_position[1], GRID_SIZE - 1))
-                )
+            indiv.position = (
+                max(0, min(new_position[0], GRID_SIZE - 1)),
+                max(0, min(new_position[1], GRID_SIZE - 1))
+            )
 
-                context.next_position = indiv.position 
+            context.next_position = indiv.position 
 
-            if self.on_update is not None:
-                drawing_data = SimulationDrawingData(
-                    indiv_updates=contexts, 
-                    heal_zones=self.heal_zones, 
-                    rad_zones=self.rad_zones, 
-                    steps_remaining=self.steps_remaining, 
-                    model_num_generations=self.indivs[0].model.num_generations
+        if self.on_update is not None:
+            drawing_data = SimulationDrawingData(
+                indiv_updates=contexts, 
+                heal_zones=self.heal_zones, 
+                rad_zones=self.rad_zones, 
+                steps_remaining=self.steps_remaining, 
+                model_num_generations=self.indivs[0].model.num_generations
+            )
 
-                )
-
-                self.on_update(drawing_data)
+            self.on_update(drawing_data)
 
