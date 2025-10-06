@@ -18,3 +18,5 @@ class SimulationDrawingData:
 class ProjectDrawingData:
     last_sim_duration: float
     last_training_duration: float
+    avg_times_healed: float
+    moving_avg_times_healed: float
