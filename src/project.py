@@ -1,5 +1,6 @@
 from collections import deque
 from collections.abc import Callable
+import uuid
 import time
 
 from config import LOAD_MODELS, NUM_INDIVS, SIMULATOR_STEPS
@@ -8,12 +9,15 @@ from src.drawing_data import SimulationDrawingData, ProjectDrawingData
 from src.simulation.individual import Individual
 from src.fitness import calculate_theoretical_max_fitness
 from src.services.individuals import load_individuals, save_individuals
+from src.services.projects import ProjectData, save_project
 from src.simulation.main import Simulation
 
 class Project:
+    # TODO: Do we need to store sim here?
     sim: Simulation | None
-    apply_curriculum: CurriculumFn
 
+    apply_curriculum: CurriculumFn
+    id: uuid.UUID
     last_k_avg_times_healed: deque[float]
     theoretical_max_fitness: float
 
@@ -23,8 +27,34 @@ class Project:
         self.sim = None
         self.apply_curriculum = apply_curriculum
 
+    @staticmethod
+    def from_data(project_data: ProjectData, apply_curriculum: CurriculumFn) -> "Project":
+        project = Project(apply_curriculum)
+        project.last_k_avg_times_healed = project_data.last_k_avg_times_healed
+        project.theoretical_max_fitness = calculate_theoretical_max_fitness()
+        project.sim = None
+        project.apply_curriculum = apply_curriculum
+        project.id = project_data.id
+        return project
+    
+    def to_data(self) -> ProjectData:
+        return ProjectData(
+            id=self.id,
+            last_k_avg_times_healed=self.last_k_avg_times_healed
+        )
+
+    @staticmethod
+    def new(apply_curriculum: CurriculumFn):
+        project = Project(apply_curriculum)
+        project.last_k_avg_times_healed = deque(maxlen=20)
+        project.theoretical_max_fitness = calculate_theoretical_max_fitness()
+        project.sim = None
+        project.apply_curriculum = apply_curriculum
+        project.id = uuid.uuid4()
+        return project
+
     def run(self, on_sim_update: Callable[[SimulationDrawingData], None] | None = None, on_project_update: Callable[[ProjectDrawingData], None] | None = None):
-        generation = spawn_initial_generation()
+        generation = self.spawn_initial_generation()
         running_curriculum = True
 
         while running_curriculum:
@@ -47,10 +77,12 @@ class Project:
 
             if moving_avg_times_healed > self.theoretical_max_fitness * .8:
                 # We've hit 80% of the theoretical max fitness, so we can stop now.
-                save_individuals(generation)
+                save_project(self.to_data())
+                save_individuals(self.id, generation)
                 running_curriculum = False
-            elif indiv.model.num_generations % 100 == 0:
-                save_individuals(generation)
+            elif indiv.model.num_generations % 10 == 0:
+                save_project(self.to_data())
+                save_individuals(self.id, generation)
 
             generation = self.apply_curriculum(generation)
 
@@ -63,9 +95,9 @@ class Project:
                 ))
 
 
-def spawn_initial_generation() -> list[Individual]:
-    if LOAD_MODELS:
-        return load_individuals()
-    else:
-        return [Individual() for _ in range(NUM_INDIVS)]
+    def spawn_initial_generation(self) -> list[Individual]:
+        if LOAD_MODELS:
+            return load_individuals(self.id)
+        else:
+            return [Individual() for _ in range(NUM_INDIVS)]
 

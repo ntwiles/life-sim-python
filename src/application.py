@@ -5,6 +5,7 @@ import pyglet
 from pyglet import shapes, text
 
 from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, NUM_RAD_ZONES, WINDOW_SCALE
+from src.services.projects import load_projects
 from src.curricula.evolutionary import apply_evolutionary_curriculum
 from src.drawing_data import SimulationDrawingData, ProjectDrawingData
 from src.project import Project
@@ -95,7 +96,12 @@ class Application:
 
 
     def run(self):
-        self.project = Project(apply_evolutionary_curriculum)
+        projects = load_projects()
+
+        for project in projects:
+            print(f"Loaded project {project.id} with {len(project.last_k_avg_times_healed)} recorded fitness values.")
+
+        self.project = Project.from_data(projects[0], apply_evolutionary_curriculum)
 
         def handle_sim_updates(data: SimulationDrawingData):
             self.latest_sim_data = data
