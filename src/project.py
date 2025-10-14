@@ -4,7 +4,8 @@ import uuid
 import time
 
 from config import LOAD_MODELS, NUM_INDIVS, SIMULATOR_STEPS
-from src.curricula.main import CurriculumFn
+from src.curricula.types import CurriculumFn, CurriculumKey
+from src.curricula.main import curriculum_functions
 from src.drawing_data import SimulationDrawingData, ProjectDrawingData
 from src.simulation.individual import Individual
 from src.fitness import calculate_theoretical_max_fitness
@@ -16,40 +17,45 @@ class Project:
     # TODO: Do we need to store sim here?
     sim: Simulation | None
 
+    curriculum_key: CurriculumKey
     apply_curriculum: CurriculumFn
     id: uuid.UUID
     last_k_avg_times_healed: deque[float]
     theoretical_max_fitness: float
 
-    def __init__(self, apply_curriculum: CurriculumFn):
+
+
+    def __init__(self):
         self.last_k_avg_times_healed = deque(maxlen=20)
         self.theoretical_max_fitness = calculate_theoretical_max_fitness()
         self.sim = None
-        self.apply_curriculum = apply_curriculum
 
     @staticmethod
-    def from_data(project_data: ProjectData, apply_curriculum: CurriculumFn) -> "Project":
-        project = Project(apply_curriculum)
+    def from_data(project_data: ProjectData) -> "Project":
+        project = Project()
         project.last_k_avg_times_healed = project_data.last_k_avg_times_healed
         project.theoretical_max_fitness = calculate_theoretical_max_fitness()
         project.sim = None
-        project.apply_curriculum = apply_curriculum
+        project.curriculum_key = project_data.curriculum
+        project.apply_curriculum = curriculum_functions[project.curriculum_key]
         project.id = project_data.id
         return project
     
     def to_data(self) -> ProjectData:
         return ProjectData(
             id=self.id,
-            last_k_avg_times_healed=self.last_k_avg_times_healed
+            last_k_avg_times_healed=self.last_k_avg_times_healed,
+            curriculum=self.curriculum_key
         )
 
     @staticmethod
-    def new(apply_curriculum: CurriculumFn):
-        project = Project(apply_curriculum)
+    def new(curriculum_key: CurriculumKey) -> "Project":
+        project = Project()
         project.last_k_avg_times_healed = deque(maxlen=20)
         project.theoretical_max_fitness = calculate_theoretical_max_fitness()
         project.sim = None
-        project.apply_curriculum = apply_curriculum
+        project.curriculum_key = curriculum_key
+        project.apply_curriculum = curriculum_functions[project.curriculum_key]
         project.id = uuid.uuid4()
         return project
 

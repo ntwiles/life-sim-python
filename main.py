@@ -2,6 +2,9 @@ import cProfile
 from multiprocessing import Process
 import pstats
 
+from src.curricula.evolutionary import apply_evolutionary_curriculum
+from src.project import Project
+from src.services.projects import load_projects
 from src.application import Application
 from config import PROFILER
 
@@ -28,7 +31,9 @@ def make_process(target, *args, **kwargs):
         return Process(target=target, args=args, kwargs=kwargs)
 
 def main():
-    app = Application()
+    projects = load_projects()
+    project = Project.from_data(projects[0])
+    app = Application(project)
     app.run()
 
 if __name__ == "__main__":

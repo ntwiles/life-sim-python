@@ -1,4 +1,4 @@
-from src.curricula.main import CurriculumFn
+from src.curricula.types import CurriculumFn
 from src.simulation.individual import Individual
 
 

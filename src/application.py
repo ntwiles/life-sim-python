@@ -5,8 +5,6 @@ import pyglet
 from pyglet import shapes, text
 
 from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, NUM_RAD_ZONES, WINDOW_SCALE
-from src.services.projects import load_projects
-from src.curricula.evolutionary import apply_evolutionary_curriculum
 from src.drawing_data import SimulationDrawingData, ProjectDrawingData
 from src.project import Project
 
@@ -28,13 +26,13 @@ class Application:
     latest_project_data: ProjectDrawingData | None
 
 
-    def __init__(self):
-        self.window = pyglet.window.Window(GRID_SIZE * WINDOW_SCALE, GRID_SIZE * WINDOW_SCALE)
+    def __init__(self, project: Project):
+        self.window = pyglet.window.Window(GRID_SIZE * WINDOW_SCALE, GRID_SIZE * WINDOW_SCALE) # type: ignore[abstract]
+        self.window.on_draw = self.on_draw # type: ignore[assignment]
+        self.window.on_key_press = self.on_key_press # type: ignore[assignment]
 
+        self.project = project      
         self.rendering_enabled = True
-                
-        self.window.on_draw = self.on_draw
-        self.window.on_key_press = self.on_key_press
 
         self.indiv_ids = []
         for _ in range(NUM_INDIVS):
@@ -96,13 +94,6 @@ class Application:
 
 
     def run(self):
-        projects = load_projects()
-
-        for project in projects:
-            print(f"Loaded project {project.id} with {len(project.last_k_avg_times_healed)} recorded fitness values.")
-
-        self.project = Project.from_data(projects[0], apply_evolutionary_curriculum)
-
         def handle_sim_updates(data: SimulationDrawingData):
             self.latest_sim_data = data
 
@@ -114,6 +105,7 @@ class Application:
         thread.start()
 
         pyglet.app.run()
+
 
     def _draw_project_stats(self):
         project = self.latest_project_data

@@ -2,7 +2,7 @@ import math
 import random
 
 from config import ENABLE_GATING, SELECTION_RATE
-from src.curricula.main import CurriculumFn
+from src.curricula.types import CurriculumFn
 from src.model.main import clone_and_mutate_model
 from src.simulation.individual import Individual
 

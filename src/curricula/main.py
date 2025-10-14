@@ -1,6 +1,9 @@
-from typing import Callable
+from src.curricula.evolutionary import apply_evolutionary_curriculum
+from src.curricula.reinforcement import apply_reinforcement_curriculum
+from src.curricula.types import CurriculumFn
 
-from src.simulation.individual import Individual
-
-CurriculumFn = Callable[[list[Individual]], list[Individual]]
+curriculum_functions: dict[str, CurriculumFn] = {
+    "evolutionary": apply_evolutionary_curriculum, 
+    "reinforcement": apply_reinforcement_curriculum, 
+}
 
