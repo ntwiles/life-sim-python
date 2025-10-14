@@ -2,7 +2,6 @@ import cProfile
 from multiprocessing import Process
 import pstats
 
-from src.curricula.evolutionary import apply_evolutionary_curriculum
 from src.project import Project
 from src.services.projects import load_projects
 from src.application import Application
@@ -32,6 +31,16 @@ def make_process(target, *args, **kwargs):
 
 def main():
     projects = load_projects()
+
+    print("\n")
+
+    print(f"{"#".ljust(3)}{"Project".ljust(40)}{"Curriculum".ljust(20)}")
+
+    for i, project_data in enumerate(projects):
+        print(f"{str(i + 1).ljust(3)}{str(project_data.id).ljust(40)}{project_data.curriculum.ljust(20)}")
+
+    print("\n")
+
     project = Project.from_data(projects[0])
     app = Application(project)
     app.run()
