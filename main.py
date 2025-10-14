@@ -29,19 +29,41 @@ def make_process(target, *args, **kwargs):
     else:
         return Process(target=target, args=args, kwargs=kwargs)
 
-def main():
+def main() -> None:
     projects = load_projects()
 
+    if not projects:
+        print("No projects found in .projects. Exiting.")
+        return
+
     print("\n")
 
+    # Header
     print(f"{"#".ljust(3)}{"Project".ljust(40)}{"Curriculum".ljust(20)}")
 
-    for i, project_data in enumerate(projects):
-        print(f"{str(i + 1).ljust(3)}{str(project_data.id).ljust(40)}{project_data.curriculum.ljust(20)}")
+    # List projects
+    for i, project_data in enumerate(projects, start=1):
+        print(f"{str(i).ljust(3)}{str(project_data.id).ljust(40)}{str(project_data.curriculum).ljust(20)}")
 
     print("\n")
 
-    project = Project.from_data(projects[0])
+    # Prompt for selection
+    selected_index: int | None = None
+
+    while selected_index is None:
+        choice = input(f"Select a project [1-{len(projects)}] (or q to quit): ").strip()
+        if choice.lower() in {"q", "quit", "exit"}:
+            return
+        try:
+            idx = int(choice)
+            if 1 <= idx <= len(projects):
+                selected_index = idx - 1
+            else:
+                print(f"Please enter a number between 1 and {len(projects)}.")
+        except ValueError:
+            print("Please enter a valid number or 'q' to quit.")
+
+    project = Project.from_data(projects[selected_index])
     app = Application(project)
     app.run()
 

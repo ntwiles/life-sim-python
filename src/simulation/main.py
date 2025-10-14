@@ -49,7 +49,7 @@ class Simulation:
         with tf.device('/GPU:0'):
             all_decisions = batch_decide([indiv.model for indiv in self.indivs], np.array(all_inputs))
 
-        for indiv, decision, context in zip(self.indivs, all_decisions, contexts):
+        for i, (indiv, decision, context) in enumerate(zip(self.indivs, all_decisions, contexts)):
             indiv.previous_position = indiv.position
             new_position = (indiv.position[0] + decision[0], indiv.position[1] + decision[1])
 
@@ -58,7 +58,10 @@ class Simulation:
                 max(0, min(new_position[1], GRID_SIZE - 1))
             )
 
-            context.next_position = indiv.position 
+            context.next_position = indiv.position
+
+            input = all_inputs[i]
+            indiv.log_step(input, decision)
 
         if self.on_update is not None:
             drawing_data = SimulationDrawingData(

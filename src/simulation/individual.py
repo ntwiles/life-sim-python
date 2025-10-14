@@ -23,6 +23,7 @@ class Individual:
     previous_position: tuple[int, int]
     times_healed: int
     model: Model
+    steps: list[()]
 
     def __init__(self, model: Model | None = None):
         start_position = (randint(0, GRID_SIZE - 1), randint(0, GRID_SIZE - 1))
@@ -31,6 +32,7 @@ class Individual:
         self.times_healed = 0
 
         self.model = model if model is not None else create_model()
+        self.steps = []
 
     def handle_heal_zones(self, heal_zones: list[HealZone]):
         heal_zone, heal_zone_dist = get_closest_heal_zone(heal_zones, self.position)
@@ -71,7 +73,10 @@ class Individual:
             self.times_healed
         )
 
-    
+    def log_step(self, inputs: list[float], decision: np.ndarray):
+        self.steps.append((inputs, decision))
+
+
     def calculate_input_values(self, context: IndividualUpdateContext) -> list[float]:
         prev_position_dir_x = self.position[0] - self.previous_position[0]
         prev_position_dir_y = self.position[1] - self.previous_position[1]
