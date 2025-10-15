@@ -4,8 +4,8 @@ import uuid
 import time
 
 from config import LOAD_MODELS, NUM_INDIVS, SIMULATOR_STEPS
-from src.curricula.types import CurriculumFn, CurriculumKey
-from src.curricula.main import curriculum_functions
+from src.strategies.types import StrategyFn, StrategyKey
+from src.strategies.main import strategy_functions
 from src.drawing_data import SimulationDrawingData, ProjectDrawingData
 from src.simulation.individual import Individual
 from src.fitness import calculate_theoretical_max_fitness
@@ -17,8 +17,8 @@ class Project:
     # TODO: Do we need to store sim here?
     sim: Simulation | None
 
-    curriculum_key: CurriculumKey
-    apply_curriculum: CurriculumFn
+    strategy_key: StrategyKey
+    apply_strategy: StrategyFn
     id: uuid.UUID
     last_k_avg_times_healed: deque[float]
     theoretical_max_fitness: float
@@ -36,8 +36,8 @@ class Project:
         project.last_k_avg_times_healed = project_data.last_k_avg_times_healed
         project.theoretical_max_fitness = calculate_theoretical_max_fitness()
         project.sim = None
-        project.curriculum_key = project_data.curriculum
-        project.apply_curriculum = curriculum_functions[project.curriculum_key]
+        project.strategy_key = project_data.strategy
+        project.apply_strategy = strategy_functions[project.strategy_key]
         project.id = project_data.id
         return project
     
@@ -45,25 +45,25 @@ class Project:
         return ProjectData(
             id=self.id,
             last_k_avg_times_healed=self.last_k_avg_times_healed,
-            curriculum=self.curriculum_key
+            strategy=self.strategy_key
         )
 
     @staticmethod
-    def new(curriculum_key: CurriculumKey) -> "Project":
+    def new(strategy_key: StrategyKey) -> "Project":
         project = Project()
         project.last_k_avg_times_healed = deque(maxlen=20)
         project.theoretical_max_fitness = calculate_theoretical_max_fitness()
         project.sim = None
-        project.curriculum_key = curriculum_key
-        project.apply_curriculum = curriculum_functions[project.curriculum_key]
+        project.strategy_key = strategy_key
+        project.apply_strategy = strategy_functions[project.strategy_key]
         project.id = uuid.uuid4()
         return project
 
     def run(self, on_sim_update: Callable[[SimulationDrawingData], None] | None = None, on_project_update: Callable[[ProjectDrawingData], None] | None = None):
         generation = self.spawn_initial_generation()
-        running_curriculum = True
+        running_strategy = True
 
-        while running_curriculum:
+        while running_strategy:
             sim_time_started = time.time()
 
             self.sim = Simulation(generation, on_update=on_sim_update)
@@ -85,12 +85,12 @@ class Project:
                 # We've hit 80% of the theoretical max fitness, so we can stop now.
                 save_project(self.to_data())
                 save_individuals(self.id, generation)
-                running_curriculum = False
+                running_strategy = False
             elif indiv.model.num_generations % 10 == 0:
                 save_project(self.to_data())
                 save_individuals(self.id, generation)
 
-            generation = self.apply_curriculum(generation)
+            generation = self.apply_strategy(generation)
 
             if on_project_update is not None:
                 on_project_update(ProjectDrawingData(

@@ -2,16 +2,16 @@ import math
 import random
 
 from config import ENABLE_GATING, SELECTION_RATE
-from src.curricula.types import CurriculumFn
+from src.strategies.types import StrategyFn
 from src.model.main import clone_and_mutate_model
 from src.simulation.individual import Individual
 
 
-def _apply_evolutionary_curriculum(generation: list[Individual]) -> list[Individual]:
+def _apply_evolutionary_strategy(generation: list[Individual]) -> list[Individual]:
     breeders = select_breeders(generation)
     return spawn_next_generation(breeders)
 
-apply_evolutionary_curriculum: CurriculumFn = _apply_evolutionary_curriculum
+apply_evolutionary_strategy: StrategyFn = _apply_evolutionary_strategy
 
 
 def select_breeders(indivs: list[Individual]) -> list[Individual]:
