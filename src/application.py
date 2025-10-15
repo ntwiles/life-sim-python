@@ -115,7 +115,8 @@ class Application:
             f"Avg. fitness: { round(project.avg_times_healed, 2) }",
             f"Moving avg. fitness: { round(project.moving_avg_times_healed, 2) }",
             f"Last sim duration: { round(project.last_sim_duration, 2) }s",
-            f"Last training duration: { round(project.last_training_duration, 2) }s"
+            f"Last training duration: { round(project.last_training_duration, 2) }s",
+            f"Theoretical max fitness: { round(self.project.theoretical_max_fitness, 2) }"
         ]
         
         self.project_stats_document.text = '\n'.join(project_stats)

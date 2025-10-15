@@ -3,8 +3,9 @@ from random import randint
 import numpy as np
 
 from config import GRID_SIZE, INPUT_SIZE, MAX_LENGTH
-from src.simulation.heal_zones import HealZone, get_closest_heal_zone
-from src.simulation.rad_zones import RadZone, get_closest_rad_zone
+from src.simulation.heal_zones import HealZone
+from src.simulation.rad_zones import RadZone
+from src.simulation.spawning import get_closest_zone_by_position
 from src.model.main import Model, create_model
 from src.utils import normalize_vector
 
@@ -35,9 +36,9 @@ class Individual:
         self.steps = []
 
     def handle_heal_zones(self, heal_zones: list[HealZone]):
-        heal_zone, heal_zone_dist = get_closest_heal_zone(heal_zones, self.position)
+        heal_zone, heal_zone_dist = get_closest_zone_by_position(heal_zones, self.position)
 
-        # TODO: Calculate this in `get_closest_heal_zone`.
+        # TODO: Calculate this in `get_closest_zone_by_position`.
         heal_zone_disp = (heal_zone.position[0] - self.position[0], heal_zone.position[1] - self.position[1])
         heal_zone_dir = normalize_vector(heal_zone_disp)
 
@@ -47,9 +48,9 @@ class Individual:
         return (heal_zone_dir, heal_zone_dist)
     
     def handle_rad_zones(self, rad_zones: list[RadZone]):
-        rad_zone, rad_zone_dist = get_closest_rad_zone(rad_zones, self.position)
+        rad_zone, rad_zone_dist = get_closest_zone_by_position(rad_zones, self.position)
         
-        # TODO: Calculate this in `get_closest_rad_zone`.
+        # TODO: Calculate this in `get_closest_zone_by_position`.
         rad_zone_disp = (rad_zone.position[0] - self.position[0], rad_zone.position[1] - self.position[1])
         rad_zone_dir = normalize_vector(rad_zone_disp)
         rad_zone_move_dir = normalize_vector(rad_zone.direction)
