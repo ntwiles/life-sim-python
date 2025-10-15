@@ -1,4 +1,4 @@
-from config import HEAL_ZONE_RADIUS, NUM_HEAL_ZONES
+from config import HEAL_ZONE_RADIUS, HEAL_ZONE_COUNT
 from src.simulation.spawning import get_closest_zone_by_position, random_circle_position
 
 class HealZone:
@@ -13,7 +13,7 @@ class HealZone:
 def spawn_heal_zones() -> list[HealZone]:
     heal_zones: list[HealZone] = []
 
-    for _ in range(NUM_HEAL_ZONES):
+    for _ in range(HEAL_ZONE_COUNT):
 
         position = random_circle_position(HEAL_ZONE_RADIUS)
 

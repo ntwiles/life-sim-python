@@ -64,6 +64,10 @@ class Individual:
         (heal_zone_dir, heal_zone_dist) = self.handle_heal_zones(heal_zones)
         (rad_zone_dir, rad_zone_dist, rad_zone_move_dir) = self.handle_rad_zones(rad_zones)
 
+        # Penalize going out of bounds.
+        if self.position[0] < 0 or self.position[0] >= GRID_SIZE or self.position[1] < 0 or self.position[1] >= GRID_SIZE:
+            self.times_healed -= 2
+
         return IndividualUpdateContext(
             heal_zone_dir, 
             heal_zone_dist / MAX_LENGTH,

@@ -3,7 +3,7 @@ from collections.abc import Callable
 import uuid
 import time
 
-from config import LOAD_MODELS, NUM_INDIVS, SIMULATOR_STEPS
+from config import LOAD_MODELS, NUM_INDIVS, SIM_STEPS
 from src.strategies.types import StrategyFn, StrategyKey
 from src.strategies.main import strategy_functions
 from src.drawing_data import SimulationDrawingData, ProjectDrawingData
@@ -67,7 +67,7 @@ class Project:
             sim_time_started = time.time()
 
             self.sim = Simulation(generation, on_update=on_sim_update)
-            self.sim.run(SIMULATOR_STEPS)
+            self.sim.run(SIM_STEPS)
 
             sim_duration = time.time() - sim_time_started
 

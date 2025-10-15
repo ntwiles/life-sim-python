@@ -4,7 +4,7 @@ import threading
 import pyglet
 from pyglet import shapes, text
 
-from config import GRID_SIZE, NUM_HEAL_ZONES, NUM_INDIVS, NUM_RAD_ZONES, WINDOW_SCALE
+from config import GRID_SIZE, HEAL_ZONE_COUNT, NUM_INDIVS, RAD_ZONE_COUNT, WINDOW_SCALE
 from src.drawing_data import SimulationDrawingData, ProjectDrawingData
 from src.project import Project
 
@@ -39,11 +39,11 @@ class Application:
             self.indiv_ids.append(shapes.Circle(0,0, WINDOW_SCALE))
 
         self.heal_zone_ids = []
-        for _ in range(NUM_HEAL_ZONES):
+        for _ in range(HEAL_ZONE_COUNT):
             self.heal_zone_ids.append(shapes.Circle(0, 0, WINDOW_SCALE, color=(110, 255, 100, 60), segments=32))
 
         self.rad_zone_ids = []
-        for _ in range(NUM_RAD_ZONES):
+        for _ in range(RAD_ZONE_COUNT):
             self.rad_zone_ids.append(shapes.Circle(0, 0, WINDOW_SCALE, color=(255, 100, 100, 60), segments=32))
             
         project_style = dict(

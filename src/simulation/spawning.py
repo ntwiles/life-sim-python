@@ -22,3 +22,5 @@ def get_closest_zone_by_position(zones: list[HasPosition], position: tuple[int, 
             closest_zone_dist = dist
 
     return (closest_zone, closest_zone_dist)
+
+# TODO: These functions aren't use only for spawning. Come up with a better name.
