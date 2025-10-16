@@ -1,4 +1,5 @@
 SIM_STEPS = 300
+SIM_ALLOW_OOB = True
 NUM_INDIVS = 120
 INPUT_SIZE = 10
 
@@ -22,5 +23,7 @@ LOAD_MODELS = True
 GATE_DISABLE_RATE = 0.003
 
 ENABLE_GATING = False
+
+PLOT_MAX_DATA_POINTS = 100000
 
 # NOTE: NUM_INDIVS must be evenly divisible by SELECTION_RATE, and the inverse of SELECTION_RATE must be an integer.

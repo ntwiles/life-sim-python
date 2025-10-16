@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 
 from src.drawing_data import SimulationDrawingData
-from config import GRID_SIZE
+from config import GRID_SIZE, SIM_ALLOW_OOB
 from src.model.propagation import batch_decide
 from src.simulation.rad_zones import RadZone, spawn_rad_zones
 from src.simulation.heal_zones import HealZone, spawn_heal_zones
@@ -53,10 +53,13 @@ class Simulation:
             indiv.previous_position = indiv.position
             new_position = (indiv.position[0] + decision[0], indiv.position[1] + decision[1])
 
-            indiv.position = (
-                max(0, min(new_position[0], GRID_SIZE - 1)),
-                max(0, min(new_position[1], GRID_SIZE - 1))
-            )
+            if not SIM_ALLOW_OOB:
+                new_position = (
+                    max(0, min(new_position[0], GRID_SIZE - 1)),
+                    max(0, min(new_position[1], GRID_SIZE - 1))
+                )
+                
+            indiv.position = new_position
 
             context.next_position = indiv.position
 

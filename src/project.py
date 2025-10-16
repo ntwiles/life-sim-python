@@ -24,7 +24,6 @@ class Project:
     theoretical_max_fitness: float
 
 
-
     def __init__(self):
         self.last_k_avg_times_healed = deque(maxlen=20)
         self.theoretical_max_fitness = calculate_theoretical_max_fitness()
