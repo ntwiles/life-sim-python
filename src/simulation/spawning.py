@@ -3,7 +3,7 @@ import math
 from random import randint
 from typing import TypeVar
 
-from config import GRID_SIZE
+from core.config import GRID_SIZE
 from simulation.models import HasPosition
 
 def random_circle_position(radius: int) -> tuple[int, int]:

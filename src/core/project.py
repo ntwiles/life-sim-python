@@ -3,7 +3,7 @@ from collections.abc import Callable
 import uuid
 import time
 
-from config import LOAD_MODELS, NUM_INDIVS, SIM_STEPS
+from core.config import LOAD_MODELS, NUM_INDIVS, SIM_STEPS
 from strategies.models import StrategyFn, StrategyKey
 from strategies.main import strategy_functions
 from visualization.drawing_data import SimulationDrawingData, ProjectDrawingData

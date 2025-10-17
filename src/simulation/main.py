@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 
 from visualization.drawing_data import SimulationDrawingData
-from config import GRID_SIZE, SIM_ALLOW_OOB
+from core.config import GRID_SIZE, SIM_ALLOW_OOB
 from model.propagation import batch_decide
 from simulation.rad_zones import RadZone, spawn_rad_zones
 from simulation.heal_zones import HealZone, spawn_heal_zones

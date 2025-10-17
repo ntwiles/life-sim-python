@@ -3,7 +3,7 @@
 import json
 from uuid import UUID
 
-from config import NUM_INDIVS
+from core.config import NUM_INDIVS
 from simulation.individual import Individual
 
 def save_individuals(project_id: UUID, indivs: list[Individual]):

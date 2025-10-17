@@ -2,7 +2,7 @@ import math
 
 
 def calculate_theoretical_max_fitness() -> float:
-    from config import HEAL_ZONE_COUNT, HEAL_ZONE_RADIUS, GRID_SIZE, SIM_STEPS
+    from core.config import HEAL_ZONE_COUNT, HEAL_ZONE_RADIUS, GRID_SIZE, SIM_STEPS
     
     heal_zone_area = HEAL_ZONE_COUNT * math.pi * (HEAL_ZONE_RADIUS ** 2)
     total_grid_area = GRID_SIZE ** 2

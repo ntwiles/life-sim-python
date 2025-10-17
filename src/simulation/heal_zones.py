@@ -1,4 +1,4 @@
-from config import HEAL_ZONE_RADIUS, HEAL_ZONE_COUNT
+from core.config import HEAL_ZONE_RADIUS, HEAL_ZONE_COUNT
 from simulation.spawning import get_closest_zone_by_position, random_circle_position
 
 class HealZone:

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from random import randint
 import numpy as np
 
-from config import GRID_SIZE, INPUT_SIZE, MAX_LENGTH
+from core.config import GRID_SIZE, INPUT_SIZE, MAX_LENGTH
 from simulation.heal_zones import HealZone
 from simulation.rad_zones import RadZone
 from simulation.spawning import get_closest_zone_by_position

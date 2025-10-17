@@ -5,7 +5,7 @@ import pstats
 from core.project import Project
 from services.projects import load_projects
 from core.application import Application
-from config import PROFILER
+from core.config import PROFILER
 
 def run_with_profiling(target, *args, **kwargs):
     profiler = cProfile.Profile()

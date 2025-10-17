@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import tensorflow as tf
 
-from config import INPUT_SIZE, MUTATION_MAGNITUDE, MUTATION_RATE, GATE_DISABLE_RATE
+from core.config import INPUT_SIZE, MUTATION_MAGNITUDE, MUTATION_RATE, GATE_DISABLE_RATE
 
 @dataclass
 class Model:

@@ -1,7 +1,7 @@
 import math
 import random
 
-from config import ENABLE_GATING, SELECTION_RATE
+from core.config import ENABLE_GATING, SELECTION_RATE
 from strategies.models import StrategyFn
 from model.main import clone_and_mutate_model
 from simulation.individual import Individual

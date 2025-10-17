@@ -2,7 +2,7 @@ from collections import deque
 from queue import Empty, Queue
 import matplotlib.pyplot as plt
 
-from config import PLOT_MAX_DATA_POINTS
+from core.config import PLOT_MAX_DATA_POINTS
 from visualization.drawing_data import ProjectDrawingData
 
 
