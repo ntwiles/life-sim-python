@@ -4,14 +4,14 @@ import uuid
 import time
 
 from config import LOAD_MODELS, NUM_INDIVS, SIM_STEPS
-from src.strategies.types import StrategyFn, StrategyKey
-from src.strategies.main import strategy_functions
-from src.drawing_data import SimulationDrawingData, ProjectDrawingData
-from src.simulation.individual import Individual
-from src.fitness import calculate_theoretical_max_fitness
-from src.services.individuals import load_individuals, save_individuals
-from src.services.projects import ProjectData, save_project
-from src.simulation.main import Simulation
+from strategies.models import StrategyFn, StrategyKey
+from strategies.main import strategy_functions
+from visualization.drawing_data import SimulationDrawingData, ProjectDrawingData
+from simulation.individual import Individual
+from simulation.fitness import calculate_theoretical_max_fitness
+from services.individuals import load_individuals, save_individuals
+from services.projects import ProjectData, save_project
+from simulation.main import Simulation
 
 class Project:
     # TODO: Do we need to store sim here?

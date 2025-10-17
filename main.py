@@ -2,9 +2,9 @@ import cProfile
 from multiprocessing import Process
 import pstats
 
-from src.project import Project
-from src.services.projects import load_projects
-from src.application import Application
+from core.project import Project
+from services.projects import load_projects
+from core.application import Application
 from config import PROFILER
 
 def run_with_profiling(target, *args, **kwargs):

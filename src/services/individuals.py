@@ -4,7 +4,7 @@ import json
 from uuid import UUID
 
 from config import NUM_INDIVS
-from src.simulation.individual import Individual
+from simulation.individual import Individual
 
 def save_individuals(project_id: UUID, indivs: list[Individual]):
     for i, indiv in enumerate(indivs):

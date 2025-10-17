@@ -3,11 +3,11 @@ from random import randint
 import numpy as np
 
 from config import GRID_SIZE, INPUT_SIZE, MAX_LENGTH
-from src.simulation.heal_zones import HealZone
-from src.simulation.rad_zones import RadZone
-from src.simulation.spawning import get_closest_zone_by_position
-from src.model.main import Model, create_model
-from src.utils import normalize_vector
+from simulation.heal_zones import HealZone
+from simulation.rad_zones import RadZone
+from simulation.spawning import get_closest_zone_by_position
+from model.main import Model, create_model
+from utils.vectors import normalize_vector
 
 @dataclass
 class IndividualUpdateContext:

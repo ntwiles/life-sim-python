@@ -6,9 +6,9 @@ import pyglet
 from pyglet import shapes, text
 
 from config import GRID_SIZE, HEAL_ZONE_COUNT, NUM_INDIVS, RAD_ZONE_COUNT, WINDOW_SCALE
-from src.plotting import plot_realtime_metrics
-from src.drawing_data import SimulationDrawingData, ProjectDrawingData
-from src.project import Project
+from visualization.plotting import plot_realtime_metrics
+from visualization.drawing_data import SimulationDrawingData, ProjectDrawingData
+from core.project import Project
 
 class Application:
     project: Project

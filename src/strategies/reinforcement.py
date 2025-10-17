@@ -1,7 +1,7 @@
 import numpy as np
 
-from src.strategies.types import StrategyFn
-from src.simulation.individual import Individual
+from strategies.models import StrategyFn
+from simulation.individual import Individual
 
 
 def _apply_reinforcement_strategy(generation: list[Individual]) -> list[Individual]:
@@ -13,8 +13,8 @@ def _apply_reinforcement_strategy(generation: list[Individual]) -> list[Individu
         else:
             R = float(indiv.times_healed)
         returns.append(R)
-    if not returns:
-        return generation
+
+    return generation
     
 
 apply_reinforcement_strategy: StrategyFn = _apply_reinforcement_strategy

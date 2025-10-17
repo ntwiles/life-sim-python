@@ -5,7 +5,7 @@ from collections import deque
 import json
 from uuid import UUID
 
-from src.strategies.types import StrategyKey
+from strategies.models import StrategyKey
 
 @dataclass
 class ProjectData:

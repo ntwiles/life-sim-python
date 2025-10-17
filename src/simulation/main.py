@@ -2,12 +2,12 @@ from typing import Callable
 import numpy as np
 import tensorflow as tf
 
-from src.drawing_data import SimulationDrawingData
+from visualization.drawing_data import SimulationDrawingData
 from config import GRID_SIZE, SIM_ALLOW_OOB
-from src.model.propagation import batch_decide
-from src.simulation.rad_zones import RadZone, spawn_rad_zones
-from src.simulation.heal_zones import HealZone, spawn_heal_zones
-from src.simulation.individual import Individual, IndividualUpdateContext
+from model.propagation import batch_decide
+from simulation.rad_zones import RadZone, spawn_rad_zones
+from simulation.heal_zones import HealZone, spawn_heal_zones
+from simulation.individual import Individual, IndividualUpdateContext
 
 class Simulation:
     indivs: list[Individual]

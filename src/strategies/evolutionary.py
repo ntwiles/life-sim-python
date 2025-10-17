@@ -2,9 +2,9 @@ import math
 import random
 
 from config import ENABLE_GATING, SELECTION_RATE
-from src.strategies.types import StrategyFn
-from src.model.main import clone_and_mutate_model
-from src.simulation.individual import Individual
+from strategies.models import StrategyFn
+from model.main import clone_and_mutate_model
+from simulation.individual import Individual
 
 
 def _apply_evolutionary_strategy(generation: list[Individual]) -> list[Individual]:

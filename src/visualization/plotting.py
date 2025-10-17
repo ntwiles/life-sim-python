@@ -3,7 +3,7 @@ from queue import Empty, Queue
 import matplotlib.pyplot as plt
 
 from config import PLOT_MAX_DATA_POINTS
-from src.drawing_data import ProjectDrawingData
+from visualization.drawing_data import ProjectDrawingData
 
 
 def plot_realtime_metrics(queue: Queue[ProjectDrawingData]):

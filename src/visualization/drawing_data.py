@@ -1,9 +1,9 @@
 
 from dataclasses import dataclass
 
-from src.simulation.heal_zones import HealZone
-from src.simulation.individual import IndividualUpdateContext
-from src.simulation.rad_zones import RadZone
+from simulation.heal_zones import HealZone
+from simulation.individual import IndividualUpdateContext
+from simulation.rad_zones import RadZone
 
 
 @dataclass

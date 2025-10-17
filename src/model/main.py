@@ -72,7 +72,7 @@ def mutate_weights(inner: tf.keras.Sequential) -> tf.keras.Sequential:
 
 def apply_gating(model: Model) -> Model:
     for gate_mask in model.gate_masks:
-        disable_mask = tf.random.uniform(gate_mask.shape) < GATE_DISABLE_RATE
+        disable_mask = tf.random.uniform(tf.shape(gate_mask)) < GATE_DISABLE_RATE
         gate_mask.assign(tf.where(disable_mask, 0.0, 1.0))
 
     return model

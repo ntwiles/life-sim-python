@@ -1,10 +1,9 @@
 # TODO: Consider generalizing with heal_zone implementation.
 
-import math
 from random import randint
 
 from config import GRID_SIZE, RAD_ZONE_RADIUS, RAD_ZONE_MOVE_DELAY, RAD_ZONE_COUNT, RAD_ZONE_ENABLE_MOVEMENT
-from src.simulation.spawning import get_closest_zone_by_position, random_circle_position
+from simulation.spawning import get_closest_zone_by_position, random_circle_position
 
 class RadZone:
     position: tuple[int, int]

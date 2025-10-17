@@ -2,7 +2,7 @@ from typing import Any
 from numpy.typing import NDArray
 import tensorflow as tf
 
-from src.model.main import Model
+from model.main import Model
 
 def batch_decide(models: list[Model], inputs: NDArray[Any]) -> list[tuple[int, int]]:
     output_values = [
