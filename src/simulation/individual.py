@@ -70,9 +70,9 @@ class Individual:
 
         return IndividualUpdateContext(
             heal_zone_dir, 
-            heal_zone_dist / MAX_LENGTH,
+            heal_zone_dist,
             rad_zone_dir,
-            rad_zone_dist / MAX_LENGTH,
+            rad_zone_dist,
             rad_zone_move_dir,
             self.position, 
             self.times_healed
@@ -91,12 +91,12 @@ class Individual:
         rad_zone_move_dir_x, rad_zone_move_dir_y = context.rad_zone_move_dir
 
         input_values = [
-            prev_position_dir_x,
-            prev_position_dir_y,
-            context.heal_zone_dist,
+            prev_position_dir_x / GRID_SIZE,
+            prev_position_dir_y / GRID_SIZE,
+            context.heal_zone_dist / MAX_LENGTH,
             heal_zone_dir_x,
             heal_zone_dir_y,
-            context.rad_zone_dist,
+            context.rad_zone_dist / MAX_LENGTH,
             rad_zone_dir_x,
             rad_zone_dir_y,
             rad_zone_move_dir_x,
