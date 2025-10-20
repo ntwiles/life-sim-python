@@ -1,4 +1,63 @@
+from core.config import MAX_LENGTH
 from simulation.individual import Individual, IndividualUpdateContext
+
+
+def test_update_heal_zone():
+    indiv = Individual(model=None)
+
+    heal_zone = type('HealZone', (), {'position': (5, 5), 'radius': 3})
+    rad_zone = type('RadZone', (), {'position': (15, 15), 'radius': 3, 'direction': (1, 0)})
+
+    heal_zones = [heal_zone]
+    rad_zones = [rad_zone]
+
+    initial_times_healed = indiv.times_healed
+
+    indiv.position = (5, 5)
+    context = indiv.update(heal_zones, rad_zones)
+    assert context.times_healed == initial_times_healed + 1
+    assert context.heal_zone_dist == 0.0
+    assert context.heal_zone_dir == (0.0, 0.0)
+
+def test_update_rad_zone():
+    indiv = Individual(model=None)
+
+    heal_zone = type('HealZone', (), {'position': (5, 5), 'radius': 3})
+    rad_zone = type('RadZone', (), {'position': (15, 15), 'radius': 3, 'direction': (1, 0)})
+
+    heal_zones = [heal_zone]
+    rad_zones = [rad_zone]
+
+    initial_times_healed = indiv.times_healed
+
+    indiv.position = (15, 15)
+    context = indiv.update(heal_zones, rad_zones)
+    assert context.times_healed == initial_times_healed - 2
+    assert context.rad_zone_dist == 0.0
+    assert context.rad_zone_dir == (0.0, 0.0)
+    assert context.rad_zone_move_dir == (1.0, 0.0)
+
+def test_update_no_zones():
+    indiv = Individual(model=None)
+
+    heal_zone_radius = 5
+    rad_zone_radius = 5
+
+    heal_zone = type('HealZone', (), {'position': (50, 50), 'radius': heal_zone_radius})
+    rad_zone = type('RadZone', (), {'position': (60, 60), 'radius': rad_zone_radius, 'direction': (1, 0)})
+
+    heal_zones = [heal_zone]
+    rad_zones = [rad_zone]
+
+    initial_times_healed = indiv.times_healed
+
+    indiv.position = (0, 0)
+    context = indiv.update(heal_zones, rad_zones)
+
+    print(context)
+    assert context.times_healed == initial_times_healed
+    assert context.heal_zone_dist * MAX_LENGTH > heal_zone_radius
+    assert context.rad_zone_dist * MAX_LENGTH > rad_zone_radius
 
 
 def test_calculate_input_values_previous_position():
