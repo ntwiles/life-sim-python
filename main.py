@@ -3,7 +3,7 @@ from multiprocessing import Process
 import pstats
 
 from core.project import Project
-from services.projects import load_projects
+from services.projects import load_project_datas
 from core.application import Application
 from core.config import PROFILER
 
@@ -30,7 +30,7 @@ def make_process(target, *args, **kwargs):
         return Process(target=target, args=args, kwargs=kwargs)
 
 def main() -> None:
-    projects = load_projects()
+    projects = load_project_datas()
 
     if not projects:
         print("No projects found in .projects. Exiting.")

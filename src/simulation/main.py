@@ -72,7 +72,6 @@ class Simulation:
                 heal_zones=self.heal_zones, 
                 rad_zones=self.rad_zones, 
                 steps_remaining=self.steps_remaining, 
-                model_num_generations=self.indivs[0].model.num_generations
             )
 
             self.on_update(drawing_data)

@@ -3,14 +3,14 @@ from collections.abc import Callable
 import uuid
 import time
 
-from core.config import LOAD_MODELS, NUM_INDIVS, SIM_STEPS
+from core.config import LOAD_MODELS, NUM_INDIVS, PLOT_MAX_DATA_POINTS, SIM_STEPS
 from strategies.models import StrategyFn, StrategyKey
 from strategies.main import strategy_functions
 from visualization.drawing_data import SimulationDrawingData, ProjectDrawingData
 from simulation.individual import Individual
 from simulation.fitness import calculate_theoretical_max_fitness
 from services.individuals import load_individuals, save_individuals
-from services.projects import ProjectData, save_project
+from services.projects import ProjectData, save_project_data
 from simulation.main import Simulation
 
 class Project:
@@ -20,37 +20,39 @@ class Project:
     strategy_key: StrategyKey
     apply_strategy: StrategyFn
     id: uuid.UUID
-    last_k_avg_times_healed: deque[float]
+    last_k_avg_fitness: deque[float]
     theoretical_max_fitness: float
-
+    generation_num: int
 
     def __init__(self):
-        self.last_k_avg_times_healed = deque(maxlen=20)
+        self.last_k_avg_fitness = deque(maxlen=PLOT_MAX_DATA_POINTS)
         self.theoretical_max_fitness = calculate_theoretical_max_fitness()
         self.sim = None
 
     @staticmethod
     def from_data(project_data: ProjectData) -> "Project":
         project = Project()
-        project.last_k_avg_times_healed = project_data.last_k_avg_times_healed
+        project.last_k_avg_fitness = project_data.last_k_avg_fitness
         project.theoretical_max_fitness = calculate_theoretical_max_fitness()
         project.sim = None
         project.strategy_key = project_data.strategy
         project.apply_strategy = strategy_functions[project.strategy_key]
         project.id = project_data.id
+        project.generation_num = project_data.generation_num
         return project
     
     def to_data(self) -> ProjectData:
         return ProjectData(
             id=self.id,
-            last_k_avg_times_healed=self.last_k_avg_times_healed,
-            strategy=self.strategy_key
+            last_k_avg_fitness=self.last_k_avg_fitness,
+            strategy=self.strategy_key,
+            generation_num=self.generation_num
         )
 
     @staticmethod
     def new(strategy_key: StrategyKey) -> "Project":
         project = Project()
-        project.last_k_avg_times_healed = deque(maxlen=20)
+        project.last_k_avg_fitness = deque(maxlen=20)
         project.theoretical_max_fitness = calculate_theoretical_max_fitness()
         project.sim = None
         project.strategy_key = strategy_key
@@ -74,29 +76,28 @@ class Project:
 
             avg_times_healed = sum(map(lambda indiv: indiv.times_healed, generation)) / len(generation)
 
-            for indiv in generation:
-                indiv.model.num_generations += 1
-
-            self.last_k_avg_times_healed.append(avg_times_healed)
-            moving_avg_times_healed = sum(self.last_k_avg_times_healed) / len(self.last_k_avg_times_healed)
+            self.last_k_avg_fitness.append(avg_times_healed)
+            moving_avg_times_healed = sum(self.last_k_avg_fitness) / len(self.last_k_avg_fitness)
 
             if moving_avg_times_healed > self.theoretical_max_fitness * .8:
                 # We've hit 80% of the theoretical max fitness, so we can stop now.
-                save_project(self.to_data())
+                save_project_data(self.to_data())
                 save_individuals(self.id, generation)
                 running_strategy = False
-            elif indiv.model.num_generations % 10 == 0:
-                save_project(self.to_data())
+            elif self.generation_num % 10 == 0:
+                save_project_data(self.to_data())
                 save_individuals(self.id, generation)
 
             generation = self.apply_strategy(generation)
+
+            self.generation_num += 1
 
             if on_project_update is not None:
                 on_project_update(ProjectDrawingData(
                     last_sim_duration=sim_duration,
                     last_training_duration=time.time() - training_time_started,
-                    moving_avg_times_healed=moving_avg_times_healed,
-                    avg_times_healed=avg_times_healed
+                    avg_times_healed=avg_times_healed,
+                    generation_num=self.generation_num
                 ))
 
 

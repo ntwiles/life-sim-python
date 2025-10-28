@@ -103,7 +103,7 @@ def test_calculate_input_values_heal_zone():
 
     actual = indiv.calculate_input_values(context)
 
-    assert actual[2] == heal_zone_dist / MAX_LENGTH
+    assert actual[2] == 2 * (heal_zone_dist / MAX_LENGTH) - 1
     assert actual[3] == heal_zone_dir[0]
     assert actual[4] == heal_zone_dir[1]
 
@@ -129,34 +129,14 @@ def test_calculate_input_values_rad_zone():
 
     actual = indiv.calculate_input_values(context)
 
-    assert actual[5] == rad_zone_dist / MAX_LENGTH
+    assert actual[5] == 2 * (rad_zone_dist / MAX_LENGTH) - 1
     assert actual[6] == rad_zone_dir[0]
     assert actual[7] == rad_zone_dir[1]
     assert actual[8] == rad_zone_move_dir[0]
     assert actual[9] == rad_zone_move_dir[1]
 
-def test_calculate_input_values_all_positive_normalized():
-    indiv = Individual(model=None)
 
-    indiv.position = (10, 10)
-    indiv.previous_position = (5, 5)
-
-    context = IndividualUpdateContext(
-        heal_zone_dir=(0.7071, 0.7071),
-        heal_zone_dist=50.0,
-        rad_zone_dir=(-0.7071, -0.7071),
-        rad_zone_dist=75.0,
-        rad_zone_move_dir=(0.0, 1.0),
-        next_position=(15, 15),
-        times_healed=0
-    )
-
-    input_values = indiv.calculate_input_values(context)
-
-    assert 0 <= input_values[2] <= 1.0, "Heal zone distance input value is not normalized between 0 and 1"
-    assert 0 <= input_values[5] <= 1.0, "Rad zone distance input value is not normalized between 0 and 1"
-
-def test_calculate_input_values_all_negative_normalized():
+def test_calculate_input_values_all_normalized():
     indiv = Individual(model=None)
 
     indiv.position = (5, 5)
@@ -174,11 +154,4 @@ def test_calculate_input_values_all_negative_normalized():
 
     input_values = indiv.calculate_input_values(context)
 
-    assert -1.0 <= input_values[0] <= 1, "Previous position X direction input value is not normalized between -1 and 1"
-    assert -1.0 <= input_values[1] <= 1, "Previous position Y direction input value is not normalized between -1 and 1"
-    assert -1.0 <= input_values[3] <= 1, "Heal zone X direction input value is not normalized between -1 and 1"
-    assert -1.0 <= input_values[4] <= 1, "Heal zone Y direction input value is not normalized between -1 and 1"
-    assert -1.0 <= input_values[6] <= 1, "Rad zone X direction input value is not normalized between -1 and 1"
-    assert -1.0 <= input_values[7] <= 1, "Rad zone Y direction input value is not normalized between -1 and 1"
-    assert -1.0 <= input_values[8] <= 1, "Rad zone move X direction input value is not normalized between -1 and 1"
-    assert -1.0 <= input_values[9] <= 1, "Rad zone move Y direction input value is not normalized between -1 and 1"
+    assert all(-1.0 <= x <= 1.0 for x in input_values)

@@ -1,6 +1,5 @@
 
 import math
-from queue import Empty, Queue
 import threading
 import pyglet
 from pyglet import shapes, text
@@ -26,8 +25,6 @@ class Application:
 
     latest_sim_data: SimulationDrawingData | None
     latest_project_data: ProjectDrawingData | None
-
-    plot_queue: Queue[ProjectDrawingData]
 
 
     def __init__(self, project: Project):
@@ -77,9 +74,6 @@ class Application:
         self.sim_stats_document.set_style(0, len(self.sim_stats_document.text), sim_style)
         self.sim_stats_layout = text.layout.TextLayout(self.sim_stats_document, GRID_SIZE * WINDOW_SCALE, GRID_SIZE * WINDOW_SCALE, multiline=True)
 
-        self.plot_queue = Queue(maxsize=1)
-
-
     def on_key_press(self, symbol, _modifiers):
         if symbol == pyglet.window.key.SPACE:
             self.rendering_enabled = not self.rendering_enabled
@@ -106,19 +100,11 @@ class Application:
         def handle_project_updates(data: ProjectDrawingData):
             self.latest_project_data = data
 
-            while True:
-                try:
-                    self.plot_queue.get_nowait()
-                except Empty:
-                    break
-
-            self.plot_queue.put_nowait(data)
-
         thread = threading.Thread(target=self.project.run, args=(handle_sim_updates, handle_project_updates))
         thread.daemon = True
         thread.start()
 
-        thread = threading.Thread(target=plot_realtime_metrics, args=(self.plot_queue,))
+        thread = threading.Thread(target=plot_realtime_metrics)
         thread.daemon = True
         thread.start()
 
@@ -131,9 +117,9 @@ class Application:
         project_stats = [
             "Project:",            
             f"Last avg. fitness: { round(project.avg_times_healed, 2) }",
-            f"Moving avg. fitness: { round(project.moving_avg_times_healed, 2) }",
             f"Last sim duration: { round(project.last_sim_duration, 2) }s",
             f"Last training duration: { round(project.last_training_duration, 2) }s",
+            f"Current generation: { project.generation_num }",
             f"Theoretical max fitness: { round(self.project.theoretical_max_fitness, 2) }"
         ]
         
@@ -184,7 +170,6 @@ class Application:
         sim_stats = [
             "Simulation:",
             f"Steps remaining: {sim.steps_remaining}",
-            f"Model generations: { sim.model_num_generations }"
         ]
 
         self.sim_stats_document.text = '\n'.join(sim_stats)

@@ -6,7 +6,6 @@ from core.config import INPUT_SIZE, MUTATION_MAGNITUDE, MUTATION_RATE, GATE_DISA
 @dataclass
 class Model:
     inner: tf.keras.Sequential
-    num_generations: int
     gate_masks: list[tf.Variable]
 
 
@@ -39,7 +38,7 @@ def create_model() -> Model:
 
             gate_masks.append(bias_gate_mask)
     
-    return Model(inner=inner, num_generations=0, gate_masks=gate_masks)
+    return Model(inner=inner, gate_masks=gate_masks)
 
 def clone_model(parent: Model) -> Model:
     inner = tf.keras.models.clone_model(parent.inner)
@@ -47,7 +46,7 @@ def clone_model(parent: Model) -> Model:
 
     gate_masks = [tf.Variable(tf.ones_like(gate_mask), trainable=False) for gate_mask in parent.gate_masks]
 
-    return Model(inner=inner, num_generations=parent.num_generations, gate_masks=gate_masks)
+    return Model(inner=inner, gate_masks=gate_masks)
 
 
 # TODO: Mutate 
@@ -57,7 +56,7 @@ def clone_and_mutate_model(parent: Model, is_gating_enabled: bool) -> Model:
     inner = mutate_weights(inner)
 
     gate_masks = [tf.Variable(tf.ones_like(gate_mask), trainable=False) for gate_mask in parent.gate_masks]
-    model = Model(inner=inner, num_generations=parent.num_generations, gate_masks=gate_masks)
+    model = Model(inner=inner, gate_masks=gate_masks)
 
     return apply_gating(model) if is_gating_enabled else model
 

@@ -22,15 +22,6 @@ This project explores evolutionary algorithms applied to neural networks in a sp
 - **Hidden Layers**: 12 → 8 neurons with ReLU activation
 - **Output Layer**: 5 movement actions (N/S/E/W/Stay) with softmax
 
-### Genetic Gating System
-
-A custom structural mutation mechanism where:
-
-- Binary gate masks control which neural connections are active
-- Gates can disable individual weights without destroying learned values
-- Provides architectural diversity while preserving genetic material
-- Mutation rate: 0.3% of connections per generation
-
 ### Environment
 
 - **Grid Size**: 300×300 simulation space
@@ -45,7 +36,7 @@ Key parameters in `config.py`:
 
 ```python
 NUM_INDIVS = 120          # Population size
-MUTATION_RATE = 0.01      # 1% of weights mutated per generation
+MUTATION_RATE = 0.001      # 1% of weights mutated per generation
 MUTATION_MAGNITUDE = 0.001 # Standard deviation of weight changes
 GATE_DISABLE_RATE = 0.003 # Probability of connection gating
 SELECTION_RATE = 1/3      # Top 33% selected for breeding

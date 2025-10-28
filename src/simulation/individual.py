@@ -90,13 +90,19 @@ class Individual:
         rad_zone_dir_x, rad_zone_dir_y = context.rad_zone_dir
         rad_zone_move_dir_x, rad_zone_move_dir_y = context.rad_zone_move_dir
 
+        # Distances: normalize to [0,1] then map to [-1,1] for zero-centering
+        heal_d01 = max(0.0, min(1.0, context.heal_zone_dist / MAX_LENGTH))
+        rad_d01 = max(0.0, min(1.0, context.rad_zone_dist / MAX_LENGTH))
+        heal_d11 = heal_d01 * 2.0 - 1.0
+        rad_d11 = rad_d01 * 2.0 - 1.0
+
         input_values = [
             prev_position_dir_x / GRID_SIZE,
             prev_position_dir_y / GRID_SIZE,
-            context.heal_zone_dist / MAX_LENGTH,
+            heal_d11,
             heal_zone_dir_x,
             heal_zone_dir_y,
-            context.rad_zone_dist / MAX_LENGTH,
+            rad_d11,
             rad_zone_dir_x,
             rad_zone_dir_y,
             rad_zone_move_dir_x,

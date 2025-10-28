@@ -24,7 +24,7 @@ def select_breeders(indivs: list[Individual]) -> list[Individual]:
 
     probabilities = [fitness / total_fitness for fitness in adjusted_fitness]
     num_breeders = math.floor(len(indivs) * SELECTION_RATE)
-    
+
     return random.choices(indivs, weights=probabilities, k=num_breeders)
 
 
