@@ -5,10 +5,10 @@ from matplotlib.ticker import AutoMinorLocator
 from collections import deque
 
 from core.config import PLOT_MAX_DATA_POINTS
-from services.projects import ProjectData, load_project_datas
+from shared.services.projects import ProjectData, load_project_datas
 
 
-def plot_realtime_metrics() -> None:
+def main() -> None:
     plt.ion() 
     plt.rcParams['toolbar'] = 'None'
 
@@ -108,8 +108,12 @@ def plot_realtime_metrics() -> None:
             last_generation += 1
 
     timer = fig.canvas.new_timer(interval=60_000)  # 1 frame per minute
+
     timer.add_callback(on_timer)
     timer.start()
 
     plt.ioff()
-    plt.show() 
+    plt.show()
+
+    if __name__ == "__main__":
+        main()

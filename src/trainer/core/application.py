@@ -4,10 +4,9 @@ import threading
 import pyglet
 from pyglet import shapes, text
 
-from core.config import GRID_SIZE, HEAL_ZONE_COUNT, NUM_INDIVS, RAD_ZONE_COUNT, WINDOW_SCALE
-from visualization.plotting import plot_realtime_metrics
+from shared.config import GRID_SIZE, HEAL_ZONE_COUNT, NUM_INDIVS, RAD_ZONE_COUNT, WINDOW_SCALE
 from visualization.drawing_data import SimulationDrawingData, ProjectDrawingData
-from core.project import Project
+from trainer.core.project import Project
 
 class Application:
     project: Project
@@ -101,10 +100,6 @@ class Application:
             self.latest_project_data = data
 
         thread = threading.Thread(target=self.project.run, args=(handle_sim_updates, handle_project_updates))
-        thread.daemon = True
-        thread.start()
-
-        thread = threading.Thread(target=plot_realtime_metrics)
         thread.daemon = True
         thread.start()
 

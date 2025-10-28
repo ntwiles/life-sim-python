@@ -1,7 +1,7 @@
 import numpy as np
 
-from strategies.models import StrategyFn
-from simulation.individual import Individual
+from shared.strategies.models import StrategyFn
+from trainer.simulation.individual import Individual
 
 
 def _apply_reinforcement_strategy(generation: list[Individual]) -> list[Individual]:

@@ -2,8 +2,8 @@
 
 from random import randint
 
-from core.config import GRID_SIZE, RAD_ZONE_RADIUS, RAD_ZONE_MOVE_DELAY, RAD_ZONE_COUNT, RAD_ZONE_ENABLE_MOVEMENT
-from simulation.spawning import get_closest_zone_by_position, random_circle_position
+from shared.config import GRID_SIZE, RAD_ZONE_RADIUS, RAD_ZONE_MOVE_DELAY, RAD_ZONE_COUNT, RAD_ZONE_ENABLE_MOVEMENT
+from trainer.simulation.spawning import get_closest_zone_by_position, random_circle_position
 
 class RadZone:
     position: tuple[int, int]

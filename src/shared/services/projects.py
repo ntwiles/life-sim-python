@@ -5,8 +5,8 @@ from collections import deque
 import json
 from uuid import UUID
 
-from core.config import PLOT_MAX_DATA_POINTS
-from strategies.models import StrategyKey
+from shared.config import PLOT_MAX_DATA_POINTS
+from shared.strategies.models import StrategyKey
 
 @dataclass
 class ProjectData:

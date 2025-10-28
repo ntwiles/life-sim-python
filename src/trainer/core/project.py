@@ -3,15 +3,15 @@ from collections.abc import Callable
 import uuid
 import time
 
-from core.config import LOAD_MODELS, NUM_INDIVS, PLOT_MAX_DATA_POINTS, SIM_STEPS
-from strategies.models import StrategyFn, StrategyKey
-from strategies.main import strategy_functions
+from shared.config import LOAD_MODELS, NUM_INDIVS, PLOT_MAX_DATA_POINTS, SIM_STEPS
+from shared.strategies.models import StrategyFn, StrategyKey
+from trainer.strategies.main import strategy_functions
 from visualization.drawing_data import SimulationDrawingData, ProjectDrawingData
-from simulation.individual import Individual
-from simulation.fitness import calculate_theoretical_max_fitness
-from services.individuals import load_individuals, save_individuals
-from services.projects import ProjectData, save_project_data
-from simulation.main import Simulation
+from trainer.simulation.individual import Individual
+from trainer.simulation.fitness import calculate_theoretical_max_fitness
+from shared.services.individuals import load_individual_data, save_individual_data
+from shared.services.projects import ProjectData, save_project_data
+from trainer.simulation.main import Simulation
 
 class Project:
     # TODO: Do we need to store sim here?
@@ -82,11 +82,16 @@ class Project:
             if moving_avg_times_healed > self.theoretical_max_fitness * .8:
                 # We've hit 80% of the theoretical max fitness, so we can stop now.
                 save_project_data(self.to_data())
-                save_individuals(self.id, generation)
+
+                for idx, indiv in enumerate(generation):
+                    save_individual_data(self.id, idx, indiv.to_data())
+
                 running_strategy = False
             elif self.generation_num % 10 == 0:
                 save_project_data(self.to_data())
-                save_individuals(self.id, generation)
+
+                for idx, indiv in enumerate(generation):
+                    save_individual_data(self.id, idx, indiv.to_data())
 
             generation = self.apply_strategy(generation)
 
@@ -103,7 +108,8 @@ class Project:
 
     def spawn_initial_generation(self) -> list[Individual]:
         if LOAD_MODELS:
-            return load_individuals(self.id)
+            return [Individual.from_data(load_individual_data(self.id, i)) for i in range(NUM_INDIVS)]
+
         else:
             return [Individual() for _ in range(NUM_INDIVS)]
 

@@ -2,12 +2,14 @@ from dataclasses import dataclass
 from random import randint
 import numpy as np
 
-from core.config import GRID_SIZE, INPUT_SIZE, MAX_LENGTH
-from simulation.heal_zones import HealZone
-from simulation.rad_zones import RadZone
-from simulation.spawning import get_closest_zone_by_position
-from model.main import Model, create_model
-from utils.vectors import normalize_vector
+from shared.config import GRID_SIZE, INPUT_SIZE, MAX_LENGTH
+from shared.services.individuals import IndividualData
+from shared.services.individuals import IndividualData
+from trainer.simulation.heal_zones import HealZone
+from trainer.simulation.rad_zones import RadZone
+from trainer.simulation.spawning import get_closest_zone_by_position
+from trainer.model.main import Model, create_model
+from shared.utils.vectors import normalize_vector
 
 @dataclass
 class IndividualUpdateContext:
@@ -34,6 +36,15 @@ class Individual:
 
         self.model = model if model is not None else create_model()
         self.steps = []
+
+    @staticmethod
+    def from_data(indiv_data: IndividualData) -> "Individual":
+        model = create_model()
+        model.inner.set_weights(indiv_data.weights)
+        return Individual(model=model)
+
+    def to_data(self) -> IndividualData:
+        return IndividualData(weights=self.model.inner.get_weights())
 
     def handle_heal_zones(self, heal_zones: list[HealZone]):
         heal_zone, heal_zone_dist = get_closest_zone_by_position(heal_zones, self.position)

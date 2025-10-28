@@ -3,11 +3,11 @@ import numpy as np
 import tensorflow as tf
 
 from visualization.drawing_data import SimulationDrawingData
-from core.config import GRID_SIZE, SIM_ALLOW_OOB
-from model.propagation import batch_decide
-from simulation.rad_zones import RadZone, spawn_rad_zones
-from simulation.heal_zones import HealZone, spawn_heal_zones
-from simulation.individual import Individual, IndividualUpdateContext
+from shared.config import GRID_SIZE, SIM_ALLOW_OOB
+from trainer.model.propagation import batch_decide
+from trainer.simulation.rad_zones import RadZone, spawn_rad_zones
+from trainer.simulation.heal_zones import HealZone, spawn_heal_zones
+from trainer.simulation.individual import Individual, IndividualUpdateContext
 
 class Simulation:
     indivs: list[Individual]

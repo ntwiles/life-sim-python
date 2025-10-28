@@ -2,10 +2,10 @@ import cProfile
 from multiprocessing import Process
 import pstats
 
-from core.project import Project
-from services.projects import load_project_datas
-from core.application import Application
-from core.config import PROFILER
+from trainer.core.project import Project
+from trainer.core.application import Application
+from shared.config import PROFILER
+from shared.services.projects import load_project_datas
 
 def run_with_profiling(target, *args, **kwargs):
     profiler = cProfile.Profile()
