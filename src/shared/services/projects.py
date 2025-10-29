@@ -1,12 +1,10 @@
-
-
 from dataclasses import dataclass
 from collections import deque
 import json
 from uuid import UUID
 
 from shared.config import PLOT_MAX_DATA_POINTS
-from shared.strategies.models import StrategyKey
+from shared.types.strategies import StrategyKey
 
 @dataclass
 class ProjectData:

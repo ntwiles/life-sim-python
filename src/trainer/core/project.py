@@ -4,9 +4,9 @@ import uuid
 import time
 
 from shared.config import LOAD_MODELS, NUM_INDIVS, PLOT_MAX_DATA_POINTS, SIM_STEPS
-from shared.strategies.models import StrategyFn, StrategyKey
-from trainer.strategies.main import strategy_functions
-from visualization.drawing_data import SimulationDrawingData, ProjectDrawingData
+from shared.types.strategies import StrategyKey
+from trainer.strategies.main import StrategyFn, strategy_functions
+from shared.types.drawing_data import SimulationDrawingData, ProjectDrawingData
 from trainer.simulation.individual import Individual
 from trainer.simulation.fitness import calculate_theoretical_max_fitness
 from shared.services.individuals import load_individual_data, save_individual_data

@@ -67,5 +67,3 @@ def main() -> None:
     app = Application(project)
     app.run()
 
-if __name__ == "__main__":
-    main()

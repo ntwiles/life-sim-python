@@ -4,7 +4,7 @@ from matplotlib.ticker import AutoMinorLocator
 
 from collections import deque
 
-from core.config import PLOT_MAX_DATA_POINTS
+from shared.config import PLOT_MAX_DATA_POINTS
 from shared.services.projects import ProjectData, load_project_datas
 
 
@@ -114,6 +114,3 @@ def main() -> None:
 
     plt.ioff()
     plt.show()
-
-    if __name__ == "__main__":
-        main()

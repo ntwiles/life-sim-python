@@ -1,25 +1,16 @@
-from dataclasses import dataclass
 from random import randint
 import numpy as np
 
 from shared.config import GRID_SIZE, INPUT_SIZE, MAX_LENGTH
 from shared.services.individuals import IndividualData
 from shared.services.individuals import IndividualData
+from shared.types.individual_update_context import IndividualUpdateContext
+from shared.utils.vectors import normalize_vector
+
 from trainer.simulation.heal_zones import HealZone
 from trainer.simulation.rad_zones import RadZone
 from trainer.simulation.spawning import get_closest_zone_by_position
 from trainer.model.main import Model, create_model
-from shared.utils.vectors import normalize_vector
-
-@dataclass
-class IndividualUpdateContext:
-    heal_zone_dir: tuple[float, float]
-    heal_zone_dist: float
-    rad_zone_dir: tuple[float, float]
-    rad_zone_dist: float
-    rad_zone_move_dir: tuple[float, float]
-    next_position: tuple[int, int]
-    times_healed: int
 
 class Individual:
     position: tuple[int, int]

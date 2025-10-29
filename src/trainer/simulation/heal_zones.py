@@ -1,4 +1,6 @@
 from shared.config import HEAL_ZONE_RADIUS, HEAL_ZONE_COUNT
+from shared.types.drawing_data import HealZoneDrawingData
+
 from trainer.simulation.spawning import get_closest_zone_by_position, random_circle_position
 
 class HealZone:
@@ -8,6 +10,12 @@ class HealZone:
     def __init__(self, position: tuple[int, int], radius: int):
         self.position = position
         self.radius = radius
+
+    def to_drawing_data(self) -> "HealZoneDrawingData":
+        return HealZoneDrawingData(
+            position=self.position,
+            radius=self.radius
+        )
 
 
 def spawn_heal_zones() -> list[HealZone]:

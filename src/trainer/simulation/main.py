@@ -2,7 +2,7 @@ from typing import Callable
 import numpy as np
 import tensorflow as tf
 
-from visualization.drawing_data import SimulationDrawingData
+from shared.types.drawing_data import SimulationDrawingData
 from shared.config import GRID_SIZE, SIM_ALLOW_OOB
 from trainer.model.propagation import batch_decide
 from trainer.simulation.rad_zones import RadZone, spawn_rad_zones

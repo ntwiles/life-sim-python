@@ -5,7 +5,7 @@ import pyglet
 from pyglet import shapes, text
 
 from shared.config import GRID_SIZE, HEAL_ZONE_COUNT, NUM_INDIVS, RAD_ZONE_COUNT, WINDOW_SCALE
-from visualization.drawing_data import SimulationDrawingData, ProjectDrawingData
+from shared.types.drawing_data import SimulationDrawingData, ProjectDrawingData
 from trainer.core.project import Project
 
 class Application:

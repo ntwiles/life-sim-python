@@ -3,6 +3,7 @@
 from random import randint
 
 from shared.config import GRID_SIZE, RAD_ZONE_RADIUS, RAD_ZONE_MOVE_DELAY, RAD_ZONE_COUNT, RAD_ZONE_ENABLE_MOVEMENT
+from shared.types.drawing_data import RadZoneDrawingData
 from trainer.simulation.spawning import get_closest_zone_by_position, random_circle_position
 
 class RadZone:
@@ -19,6 +20,12 @@ class RadZone:
         dir_y = randint(-1, 1)
         self.direction = (dir_x, dir_y)
         self.time_since_last_move = 0
+
+    def to_drawing_data(self) -> "RadZoneDrawingData":
+        return RadZoneDrawingData(
+            position=self.position,
+            radius=self.radius
+        )
     
     def update(self):
         self.time_since_last_move += 1
