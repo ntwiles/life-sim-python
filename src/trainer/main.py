@@ -6,6 +6,7 @@ from trainer.core.project import Project
 from trainer.core.application import Application
 from shared.config import PROFILER
 from shared.services.projects import load_project_datas
+from trainer.rendering.pyglet_renderer import PygletRenderer
 
 def run_with_profiling(target, *args, **kwargs):
     profiler = cProfile.Profile()
@@ -64,6 +65,8 @@ def main() -> None:
             print("Please enter a valid number or 'q' to quit.")
 
     project = Project.from_data(projects[selected_index])
-    app = Application(project)
+    renderer = PygletRenderer(project.theoretical_max_fitness)
+
+    app = Application(project, renderer)
     app.run()
 
