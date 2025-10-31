@@ -40,11 +40,11 @@ def main() -> None:
     print("\n")
 
     # Header
-    print(f"{"#".ljust(3)}{"Project".ljust(40)}{"Strategy".ljust(20)}")
+    print(f"{"#".ljust(3)}{"Project".ljust(40)}{"Strategy".ljust(20)}{"Generations".ljust(15)}")
 
     # List projects
     for i, project_data in enumerate(projects, start=1):
-        print(f"{str(i).ljust(3)}{str(project_data.id).ljust(40)}{str(project_data.strategy).ljust(20)}")
+        print(f"{str(i).ljust(3)}{str(project_data.id).ljust(40)}{str(project_data.strategy).ljust(20)}{str(project_data.generation_num).ljust(15)}")
 
     print("\n")
 

@@ -7,8 +7,17 @@ from collections import deque
 from shared.config import PLOT_MAX_DATA_POINTS
 from shared.services.projects import ProjectData, load_project_datas
 
+EMA_ALPHA_100 = 2 / (100 + 1)
+EMA_ALPHA_1000 = 2 / (1000 + 1) 
+EMA_ALPHA_10000 = 2 / (10000 + 1)
 
-def main() -> None:
+def _calculate_exponential_moving_average(a: float, new_value: float, previous_ema: float | None) -> float:
+    if previous_ema is None:
+        return new_value
+    
+    return (new_value * a) + (previous_ema * (1 - a))
+
+def initialize_plot():
     plt.ion() 
     plt.rcParams['toolbar'] = 'None'
 
@@ -33,15 +42,26 @@ def main() -> None:
     for spine in ax.spines.values():
         spine.set_edgecolor('gray')
 
+    # Create plot lines
     moving_avg_fitness_100_line, = ax.plot([], [], lw=2, label='Moving avg fitness (100 gen)')
     moving_avg_fitness_1000_line, = ax.plot([], [], lw=2, label='Moving avg fitness (1000 gen)')
     moving_avg_fitness_10000_line, = ax.plot([], [], lw=2, label='Moving avg fitness (10000 gen)')
 
+    # Setup legend with styling
     legend = ax.legend(loc='upper left')
     legend.get_frame().set_facecolor('black')
     legend.get_frame().set_edgecolor('gray')
     for text in legend.get_texts():
         text.set_color('white')
+
+    return fig, ax, moving_avg_fitness_100_line, moving_avg_fitness_1000_line, moving_avg_fitness_10000_line
+
+def calculate_initial_last_generation(project: ProjectData) -> int:
+    available_generations = len(project.last_k_avg_fitness)
+    return project.generation_num - available_generations if available_generations > 0 else project.generation_num
+
+def main() -> None:
+    fig, ax, moving_avg_fitness_100_line, moving_avg_fitness_1000_line, moving_avg_fitness_10000_line = initialize_plot()
 
     xs: deque[float] = deque(maxlen=PLOT_MAX_DATA_POINTS)
     
@@ -49,43 +69,42 @@ def main() -> None:
     moving_avg_fitness_1000_ys: deque[float] = deque(maxlen=PLOT_MAX_DATA_POINTS)
     moving_avg_fitness_10000_ys: deque[float] = deque(maxlen=PLOT_MAX_DATA_POINTS)
 
-    last_generation: int = -1
+    project = load_project_datas()[0]  # TODO: Handle multiple projects
+    last_generation = calculate_initial_last_generation(project)
+    last_ema_100 = None
+    last_ema_1000 = None
+    last_ema_10000 = None
 
     def handle_generation(project: ProjectData, generation: int):
-        prefix = list(project.last_k_avg_fitness)[:generation]
-        last_10000_avg_fitness = prefix[-10000:]
-        last_1000_avg_fitness = list(last_10000_avg_fitness)[-1000:]
-        last_100_avg_fitness = list(last_10000_avg_fitness)[-100:]
+        nonlocal xs
+        nonlocal moving_avg_fitness_100_ys
+        nonlocal moving_avg_fitness_1000_ys
+        nonlocal moving_avg_fitness_10000_ys
+        nonlocal last_ema_100
+        nonlocal last_ema_1000
+        nonlocal last_ema_10000
 
-        ready_100 = len(last_100_avg_fitness) == 100
-        ready_1000 = len(last_1000_avg_fitness) == 1000
-        ready_10000 = len(last_10000_avg_fitness) == 10000
+        generation_index = generation - (project.generation_num - len(project.last_k_avg_fitness)) - 1
 
-        if not (ready_100 or ready_1000 or ready_10000):
-            return
-        
-        xs.append(float(generation))
+        last_avg_fitness = project.last_k_avg_fitness[generation_index]
 
-        if ready_100:
-            moving_avg_fitness_100 = sum(last_100_avg_fitness) / len(last_100_avg_fitness)
-            moving_avg_fitness_100_ys.append(moving_avg_fitness_100)
-            moving_avg_fitness_100_line.set_data(xs, moving_avg_fitness_100_ys)
+        xs.append(generation)
 
-        if ready_1000:
-            moving_avg_fitness_1000 = sum(last_1000_avg_fitness) / len(last_1000_avg_fitness)
-            moving_avg_fitness_1000_ys.append(moving_avg_fitness_1000)
+        moving_avg_fitness_100 = _calculate_exponential_moving_average(EMA_ALPHA_100, last_avg_fitness, last_ema_100)
+        moving_avg_fitness_100_ys.append(moving_avg_fitness_100)
+        moving_avg_fitness_100_line.set_data(xs, moving_avg_fitness_100_ys)
+        last_ema_100 = moving_avg_fitness_100
 
-            k = len(moving_avg_fitness_1000_ys)
-            x_tail = list(xs)[-k:]
-            moving_avg_fitness_1000_line.set_data(x_tail, moving_avg_fitness_1000_ys)
+        moving_avg_fitness_1000 = _calculate_exponential_moving_average(EMA_ALPHA_1000, last_avg_fitness, last_ema_1000)
+        moving_avg_fitness_1000_ys.append(moving_avg_fitness_1000)
+        moving_avg_fitness_1000_line.set_data(xs, moving_avg_fitness_1000_ys)
+        last_ema_1000 = moving_avg_fitness_1000
 
-        if ready_10000:
-            moving_avg_fitness_10000 = sum(last_10000_avg_fitness) / len(last_10000_avg_fitness)
-            moving_avg_fitness_10000_ys.append(moving_avg_fitness_10000)
+        moving_avg_fitness_10000 = _calculate_exponential_moving_average(EMA_ALPHA_10000, last_avg_fitness, last_ema_10000)
+        moving_avg_fitness_10000_ys.append(moving_avg_fitness_10000)
+        moving_avg_fitness_10000_line.set_data(xs, moving_avg_fitness_10000_ys)
+        last_ema_10000 = moving_avg_fitness_10000
 
-            k = len(moving_avg_fitness_10000_ys)
-            x_tail = list(xs)[-k:]
-            moving_avg_fitness_10000_line.set_data(x_tail, moving_avg_fitness_10000_ys)
 
         ax.relim()
         ax.autoscale_view()
@@ -101,16 +120,17 @@ def main() -> None:
         if project.generation_num <= last_generation:
             return
         
-        # TODO: We can't necessarily go back to the first generation, we only have PLOT_MAX_DATA_POINTS generations stored.
         num_generations_to_catch_up = project.generation_num - last_generation
         for _ in range(num_generations_to_catch_up):
             handle_generation(project, last_generation + 1)
             last_generation += 1
 
-    timer = fig.canvas.new_timer(interval=60_000)  # 1 frame per minute
+    timer = fig.canvas.new_timer(interval=60_000)  # 60 seconds
 
     timer.add_callback(on_timer)
     timer.start()
+
+    on_timer()
 
     plt.ioff()
     plt.show()

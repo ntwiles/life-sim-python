@@ -2,3 +2,4 @@ numpy==2.3.3
 pyglet==2.0.20
 tensorflow==2.20.0
 matplotlib==3.10.7
+filelock==3.20.0

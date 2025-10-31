@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from collections import deque
 import json
 from uuid import UUID
+from filelock import FileLock
 
 from shared.config import PLOT_MAX_DATA_POINTS
 from shared.types.strategies import StrategyKey
@@ -13,16 +14,23 @@ class ProjectData:
     strategy: StrategyKey
     generation_num: int
 
-def save_project_data(project: ProjectData):
-    with open(f".projects/{str(project.id)}/project.json", 'w') as file:
-        data = {
-            'last_k_avg_fitness': list(project.last_k_avg_fitness),
-            'id': str(project.id),
-            'strategy': project.strategy,
-            'generation_num': project.generation_num
-        }
+def _make_file_path(project_id: UUID) -> str:
+    return f".projects/{str(project_id)}/project.json"
 
-        json.dump(data, file)
+def save_project_data(project: ProjectData):
+    file_path = _make_file_path(project.id)
+    lock_path = file_path + ".lock"
+
+    with FileLock(lock_path):
+        with open(file_path, 'w') as file:
+            data = {
+                    'last_k_avg_fitness': list(project.last_k_avg_fitness),
+                    'id': str(project.id),
+                    'strategy': project.strategy,
+                'generation_num': project.generation_num
+            }
+
+            json.dump(data, file)
 
 def load_project_datas() -> list[ProjectData]:
     import os
@@ -36,12 +44,16 @@ def load_project_datas() -> list[ProjectData]:
     return projects
 
 def load_project_data(project_id: UUID) -> ProjectData:
-    with open(f".projects/{str(project_id)}/project.json", 'r') as file:
-        data = json.load(file)
-        last_k_avg_fitness = deque(data['last_k_avg_fitness'], maxlen=PLOT_MAX_DATA_POINTS)
-        id = UUID(data['id'])
-        strategy = data['strategy']
-        generation_num = data['generation_num']
+    file_path = _make_file_path(project_id)
+    lock_path = file_path + ".lock"
+
+    with FileLock(lock_path):
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+            last_k_avg_fitness = deque(data['last_k_avg_fitness'], maxlen=PLOT_MAX_DATA_POINTS)
+            id = UUID(data['id'])
+            strategy = data['strategy']
+            generation_num = data['generation_num']
 
     return ProjectData(id=id, last_k_avg_fitness=last_k_avg_fitness, strategy=strategy, generation_num=generation_num)
 
