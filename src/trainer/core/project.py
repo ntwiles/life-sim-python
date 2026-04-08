@@ -77,5 +77,6 @@ class Project:
         project.theoretical_max_fitness = calculate_theoretical_max_fitness()
         project.strategy_key = strategy_key
         project.id = uuid.uuid4()
+        project.generation_num = 0
         return project
 

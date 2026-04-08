@@ -1,7 +1,7 @@
 import math
 import random
 
-from shared.config import ENABLE_GATING, SELECTION_RATE
+from shared.config import ENABLE_GATING, SELECTION_METHOD, SELECTION_RATE, TOURNAMENT_SIZE
 from trainer.model.main import clone_and_mutate_model
 from trainer.simulation.individual import Individual
 from trainer.strategies.types import StrategyFn
@@ -15,17 +15,27 @@ apply_evolutionary_strategy: StrategyFn = _apply_evolutionary_strategy
 
 
 def select_breeders(indivs: list[Individual]) -> list[Individual]:
+    num_breeders = math.floor(len(indivs) * SELECTION_RATE)
+    if SELECTION_METHOD == "tournament":
+        return tournament_selection(indivs, num_breeders)
+    return roulette_selection(indivs, num_breeders)
+
+
+def roulette_selection(indivs: list[Individual], k: int) -> list[Individual]:
     min_fitness = min(indiv.times_healed for indiv in indivs)
-
     baseline = abs(min_fitness) + 1
-
     adjusted_fitness = [indiv.times_healed + baseline for indiv in indivs]
     total_fitness = sum(adjusted_fitness)
-
     probabilities = [fitness / total_fitness for fitness in adjusted_fitness]
-    num_breeders = math.floor(len(indivs) * SELECTION_RATE)
+    return random.choices(indivs, weights=probabilities, k=k)
 
-    return random.choices(indivs, weights=probabilities, k=num_breeders)
+
+def tournament_selection(indivs: list[Individual], k: int) -> list[Individual]:
+    breeders = []
+    for _ in range(k):
+        contestants = random.sample(indivs, min(TOURNAMENT_SIZE, len(indivs)))
+        breeders.append(max(contestants, key=lambda indiv: indiv.times_healed))
+    return breeders
 
 
 def spawn_next_generation(breeders: list[Individual]) -> list[Individual]:

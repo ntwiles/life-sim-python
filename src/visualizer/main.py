@@ -60,6 +60,16 @@ def calculate_initial_last_generation(project: ProjectData) -> int:
     available_generations = len(project.last_k_avg_fitness)
     return project.generation_num - available_generations if available_generations > 0 else project.generation_num
 
+def _get_project() -> ProjectData:
+    projects = load_project_datas()
+    project = next((p for p in projects if str(p.id) == "c6e7035a-196f-4b1d-8abd-dc5c6b1a131f"), None)
+
+    if project is None:
+        print("Project not found. Exiting.")
+        exit(1)
+    
+    return project
+
 def main() -> None:
     fig, ax, moving_avg_fitness_100_line, moving_avg_fitness_1000_line, moving_avg_fitness_10000_line = initialize_plot()
 
@@ -69,7 +79,8 @@ def main() -> None:
     moving_avg_fitness_1000_ys: deque[float] = deque(maxlen=PLOT_MAX_DATA_POINTS)
     moving_avg_fitness_10000_ys: deque[float] = deque(maxlen=PLOT_MAX_DATA_POINTS)
 
-    project = load_project_datas()[0]  # TODO: Handle multiple projects
+    project = _get_project()
+    
     last_generation = calculate_initial_last_generation(project)
     last_ema_100 = None
     last_ema_1000 = None
@@ -114,8 +125,7 @@ def main() -> None:
     def on_timer():
         nonlocal last_generation
 
-        # TODO: Handle multiple projects
-        project = load_project_datas()[0]
+        project = _get_project();
 
         if project.generation_num <= last_generation:
             return
