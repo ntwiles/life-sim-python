@@ -5,7 +5,7 @@ from matplotlib.ticker import AutoMinorLocator
 from collections import deque
 
 from shared.config import PLOT_MAX_DATA_POINTS
-from shared.services.projects import ProjectData, load_project_datas
+from shared.services.projects import ProjectData, load_project_data, load_selected_project_id
 
 EMA_ALPHA_100 = 2 / (100 + 1)
 EMA_ALPHA_1000 = 2 / (1000 + 1) 
@@ -61,14 +61,13 @@ def calculate_initial_last_generation(project: ProjectData) -> int:
     return project.generation_num - available_generations if available_generations > 0 else project.generation_num
 
 def _get_project() -> ProjectData:
-    projects = load_project_datas()
-    project = next((p for p in projects if str(p.id) == "c6e7035a-196f-4b1d-8abd-dc5c6b1a131f"), None)
+    project_id = load_selected_project_id()
 
-    if project is None:
-        print("Project not found. Exiting.")
+    if project_id is None:
+        print("No project selected. Launch the trainer and select a project first.")
         exit(1)
-    
-    return project
+
+    return load_project_data(project_id)
 
 def main() -> None:
     fig, ax, moving_avg_fitness_100_line, moving_avg_fitness_1000_line, moving_avg_fitness_10000_line = initialize_plot()
@@ -80,7 +79,8 @@ def main() -> None:
     moving_avg_fitness_10000_ys: deque[float] = deque(maxlen=PLOT_MAX_DATA_POINTS)
 
     project = _get_project()
-    
+    project_id = project.id
+
     last_generation = calculate_initial_last_generation(project)
     last_ema_100 = None
     last_ema_1000 = None
@@ -125,7 +125,7 @@ def main() -> None:
     def on_timer():
         nonlocal last_generation
 
-        project = _get_project();
+        project = load_project_data(project_id)
 
         if project.generation_num <= last_generation:
             return

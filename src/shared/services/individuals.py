@@ -10,11 +10,11 @@ class IndividualData:
     weights: list[np.ndarray]
 
 def _ensure_models_dir(project_id: UUID):
-    models_dir = f".projects/{str(project_id)}/models"
+    models_dir = f".data/projects/{str(project_id)}/models"
     os.makedirs(models_dir, exist_ok=True)
 
 def _make_file_path(project_id: UUID, indiv_id: int) -> str:
-    return f".projects/{str(project_id)}/models/{indiv_id}.npz"
+    return f".data/projects/{str(project_id)}/models/{indiv_id}.npz"
 
 def save_individuals(project_id: UUID, indivs: list[IndividualData]):
     _ensure_models_dir(project_id)

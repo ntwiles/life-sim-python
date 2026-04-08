@@ -1,6 +1,6 @@
 __pycache__
 .venv
 .mypy_cache
-.projects
+.data
 *.egg-info/
 *.egg

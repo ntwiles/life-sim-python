@@ -7,7 +7,7 @@ from trainer.core.project import Project
 from trainer.core.application import Application
 from shared.config import NUM_INDIVS, PROFILER
 from shared.services.individuals import save_individuals
-from shared.services.projects import load_project_datas, save_project_data
+from shared.services.projects import load_project_datas, save_project_data, save_selected_project_id
 from shared.types.strategies import StrategyKey
 from trainer.simulation.individual import Individual
 from trainer.rendering.pyglet_renderer import PygletRenderer
@@ -37,7 +37,7 @@ def make_process(target, *args, **kwargs):
 def create_new_project(strategy_key: StrategyKey) -> Project:
     project = Project.new(strategy_key)
     print(f"Creating new project with id {project.id} and strategy {project.strategy_key}...")
-    os.makedirs(f".projects/{project.id}", exist_ok=True)
+    os.makedirs(f".data/projects/{project.id}", exist_ok=True)
     save_project_data(project.to_data())
     save_individuals(project.id, [Individual().to_data() for _ in range(NUM_INDIVS)])
     return project
@@ -46,7 +46,7 @@ def main() -> None:
     projects = load_project_datas()
 
     if not projects:
-        print("No projects found in .projects. Exiting.")
+        print("No projects found in .data/projects. Exiting.")
         return
 
     print("\n")
@@ -81,7 +81,9 @@ def main() -> None:
         except ValueError:
             print("Please enter a valid number or 'q' to quit.")
 
-    project = Project.from_data(projects[selected_index])
+    selected_project_data = projects[selected_index]
+    save_selected_project_id(selected_project_data.id)
+    project = Project.from_data(selected_project_data)
     renderer = PygletRenderer(project.theoretical_max_fitness)
 
     app = Application(project, renderer)
