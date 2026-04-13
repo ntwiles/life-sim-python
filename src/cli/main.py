@@ -12,6 +12,7 @@ from shared.types.strategies import StrategyKey
 from trainer.simulation.individual import Individual
 from trainer.rendering.pyglet_renderer import PygletRenderer
 
+
 def run_with_profiling(target, *args, **kwargs):
     profiler = cProfile.Profile()
     profiler.enable()
@@ -28,12 +29,14 @@ def run_with_profiling(target, *args, **kwargs):
 
     print(f"Profiling results saved to {filename}")
 
+
 def make_process(target, *args, **kwargs):
     if PROFILER:
         return Process(target=run_with_profiling, args=(target, *args), kwargs=kwargs)
     else:
         return Process(target=target, args=args, kwargs=kwargs)
-    
+
+
 def create_new_project(strategy_key: StrategyKey) -> Project:
     project = Project.new(strategy_key)
     print(f"Creating new project with id {project.id} and strategy {project.strategy_key}...")
@@ -41,6 +44,7 @@ def create_new_project(strategy_key: StrategyKey) -> Project:
     save_project_data(project.to_data())
     save_individuals(project.id, [Individual().to_data() for _ in range(NUM_INDIVS)])
     return project
+
 
 def main() -> None:
     projects = load_project_datas()
