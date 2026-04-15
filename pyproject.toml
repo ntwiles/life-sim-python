@@ -6,6 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "life-sim-python"
 version = "0.1.0"
 
+[project.scripts]
+life-sim = "cli.main:main"
+
 [tool.setuptools]
 package-dir = { "" = "src" }
 

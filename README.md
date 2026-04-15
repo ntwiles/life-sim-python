@@ -66,34 +66,35 @@ The `SELECTION_RATE` must satisfy mathematical constraints to ensure proper popu
 git clone <repository-url>
 cd life-sim-python
 
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies and register the CLI
+pip install -e .
 
-# Run simulation
-python main.py
+# Run
+life-sim
 ```
+
+Selecting a project launches both the trainer and the visualizer simultaneously.
 
 ## Project Structure
 
 ```
-├── config.py                 # Simulation parameters
-├── main.py                   # Main execution loop
-├── src/
-│   ├── model/
-│   │   ├── main.py          # Neural network model and mutations
-│   │   └── propagation.py   # Batch inference engine
-│   ├── simulation/
-│   │   ├── main.py          # Population management and selection
-│   │   ├── individual.py    # Individual agent behavior
-│   │   ├── heal_zones.py    # Beneficial environment zones
-│   │   └── rad_zones.py     # Harmful moving zones
-│   └── services/
-│       └── individuals.py   # Model persistence
-└── requirements.txt
+├── pyproject.toml
+└── src/
+    ├── cli/                      # Entry point (life-sim command)
+    ├── trainer/
+    │   ├── core/                 # Application and project management
+    │   ├── model/                # Neural network model and mutations
+    │   ├── simulation/           # Population, individuals, zones
+    │   ├── strategies/           # Evolutionary and reinforcement strategies
+    │   └── rendering/            # Pyglet renderer
+    ├── visualizer/               # Matplotlib fitness visualizer
+    └── shared/
+        ├── config.py             # Simulation parameters
+        ├── services/             # Persistence (projects, individuals)
+        └── types/                # Shared data types
 ```
 
 ## Future Enhancements
 
 - Gate inheritance across generations for structural evolution
   - This will require a mechanism for opening gates; they're currently created randomly.
-- Visualization of evolutionary progress and behaviors

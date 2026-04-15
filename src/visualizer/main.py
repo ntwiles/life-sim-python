@@ -5,11 +5,13 @@ from matplotlib.ticker import AutoMinorLocator
 from collections import deque
 
 from shared.config import PLOT_MAX_DATA_POINTS
-from shared.services.projects import ProjectData, load_project_data, load_selected_project_id
+from shared.services.projects import ProjectData, load_project_data
 
 EMA_ALPHA_100 = 2 / (100 + 1)
 EMA_ALPHA_1000 = 2 / (1000 + 1) 
 EMA_ALPHA_10000 = 2 / (10000 + 1)
+
+MAJOR_MINOR_GRID_ALPHA = 0.6
 
 def _calculate_exponential_moving_average(a: float, new_value: float, previous_ema: float | None) -> float:
     if previous_ema is None:
@@ -33,11 +35,11 @@ def initialize_plot():
     ax.tick_params(axis='y', colors='gray')
 
     ax.set_axisbelow(True)
-    ax.grid(color='gray', linestyle='--', linewidth=0.5, alpha=0.3)
+    ax.grid(color='gray', linestyle='--', linewidth=0.5, alpha=MAJOR_MINOR_GRID_ALPHA)
 
     ax.xaxis.set_minor_locator(AutoMinorLocator())
     ax.yaxis.set_minor_locator(AutoMinorLocator())
-    ax.grid(which='minor', color='gray', linestyle=':', linewidth=0.5, alpha=0.3)
+    ax.grid(which='minor', color='gray', linestyle=':', linewidth=0.5, alpha=MAJOR_MINOR_GRID_ALPHA)
 
     for spine in ax.spines.values():
         spine.set_edgecolor('gray')
@@ -60,26 +62,16 @@ def calculate_initial_last_generation(project: ProjectData) -> int:
     available_generations = len(project.last_k_avg_fitness)
     return project.generation_num - available_generations if available_generations > 0 else project.generation_num
 
-def _get_project() -> ProjectData:
-    project_id = load_selected_project_id()
-
-    if project_id is None:
-        print("No project selected. Launch the trainer and select a project first.")
-        exit(1)
-
-    return load_project_data(project_id)
-
-def main() -> None:
+def main(project_id: str) -> None:
     fig, ax, moving_avg_fitness_100_line, moving_avg_fitness_1000_line, moving_avg_fitness_10000_line = initialize_plot()
 
     xs: deque[float] = deque(maxlen=PLOT_MAX_DATA_POINTS)
-    
+
     moving_avg_fitness_100_ys: deque[float] = deque(maxlen=PLOT_MAX_DATA_POINTS)
     moving_avg_fitness_1000_ys: deque[float] = deque(maxlen=PLOT_MAX_DATA_POINTS)
     moving_avg_fitness_10000_ys: deque[float] = deque(maxlen=PLOT_MAX_DATA_POINTS)
 
-    project = _get_project()
-    project_id = project.id
+    project = load_project_data(project_id)
 
     last_generation = calculate_initial_last_generation(project)
     last_ema_100 = None

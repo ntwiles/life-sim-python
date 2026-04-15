@@ -11,6 +11,7 @@ from shared.services.projects import load_project_datas, save_project_data, save
 from shared.types.strategies import StrategyKey
 from trainer.simulation.individual import Individual
 from trainer.rendering.pyglet_renderer import PygletRenderer
+from visualizer.main import main as run_visualizer
 
 
 def run_with_profiling(target, *args, **kwargs):
@@ -87,8 +88,13 @@ def main() -> None:
 
     selected_project_data = projects[selected_index]
     save_selected_project_id(selected_project_data.id)
+
+    visualizer_process = make_process(run_visualizer, selected_project_data.id)
+    visualizer_process.start()
+
     project = Project.from_data(selected_project_data)
     renderer = PygletRenderer(project.theoretical_max_fitness)
-
     app = Application(project, renderer)
     app.run()
+
+    visualizer_process.join()
