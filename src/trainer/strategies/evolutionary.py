@@ -1,7 +1,7 @@
 import math
 import random
 
-from shared.config import ENABLE_GATING, SELECTION_METHOD, SELECTION_RATE, TOURNAMENT_SIZE
+from shared.config import SELECTION_METHOD, SELECTION_RATE, TOURNAMENT_SIZE
 from trainer.model.main import clone_and_mutate_model
 from trainer.simulation.individual import Individual
 from trainer.strategies.types import StrategyFn
@@ -43,7 +43,7 @@ def spawn_next_generation(breeders: list[Individual]) -> list[Individual]:
 
     for parent in breeders:
         for _ in range(int(round(1 / SELECTION_RATE))):
-            child = Individual(clone_and_mutate_model(parent.model, ENABLE_GATING))
+            child = Individual(clone_and_mutate_model(parent.model))
             next_generation.append(child)
 
     return next_generation
